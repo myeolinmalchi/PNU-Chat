@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = ""
+authors = ["myeolinmalchi <rkd2274@pusan.ac.kr>"]
+readme = "README.md"
+packages = [{ include = "**/*" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["standard"], version = "^0.115.6"}
+uvicorn = "^0.32.0"
+tiktoken = "^0.8.0"
+psycopg2-binary = "^2.9.10"
+beautifulsoup4 = "^4.12.3"
+requests = "^2.32.3"
+aiohttp = "^3.10.10"
+markdownify = "^0.13.1"
+pgvector = "^0.3.6"
+sqlalchemy = "^2.0.36"
+python-dotenv = "^1.0.1"
+alembic = "^1.14.0"
+html5lib = "^1.1"
+pandas = "^2.2.3"
+tqdm = "^4.67.1"
+openai = "^1.60.2"
+crawl4ai = "^0.4.248"
+nest-asyncio = "^1.6.0"
+playwright = "^1.49.1"
+dependency-injector = "^4.45.0"
+
+[tool.poetry.group.dev.dependencies]
+yapf = "^0.43.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

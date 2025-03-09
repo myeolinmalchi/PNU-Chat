@@ -1,0 +1,6 @@
+{
+  "openai": {
+    "model": "gpt-4o-mini",
+    "temperature": 1
+  }
+}

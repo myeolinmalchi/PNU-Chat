@@ -1,0 +1,58 @@
+name: CD with docker-compose
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_REPO: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker build
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker compose build
+          docker compose push
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        env:
+          DOCKER_REPO: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }} 
+        id: deploy
+        with: 
+          host: ${{ secrets.HOST }}
+          username: ec2-user
+          key: ${{ secrets.KEY }}
+          envs: DOCKER_REPO
+          script: |
+            docker rm -f $(docker ps -qa)
+            docker compose pull
+
+            export DOCKER_REPO=${{ env.DOCKER_REPO }}
+            echo "DB_USER=${{ vars.DB_USER }}" > ./.env
+            echo "DB_PASSWORD=${{ vars.DB_PASSWORD }}" >> ./.env
+            echo "DB_HOST=${{ vars.DB_HOST }}" >> ./.env
+            echo "DB_NAME=${{ vars.DB_NAME }}" >> ./.env
+            echo "TEI_URL=${{ vars.TEI_URL }}" >> ./.env
+            echo "OPENAI_API_KEY=${{ vars.OPENAI_API_KEY }}" >> .env
+            echo "EMBED_URL=${{ vars.EMBED_URL }}" >> .env
+
+            docker compose up -d
+            docker image prune -f
+

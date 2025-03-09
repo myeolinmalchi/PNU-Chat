@@ -1,0 +1,29 @@
+version: '3'
+
+networks:
+  server-connection:
+    driver: bridge
+
+services:
+  api:
+    build: ./backend
+    image: ${DOCKER_REPO}:api
+    platform: linux/arm64
+    restart: always
+    networks: 
+      - server-connection
+    ports:
+      - 8001:8001
+
+  web:
+    build: ./frontend
+    image: ${DOCKER_REPO}:web
+    platform: linux/arm64
+    restart: always
+    networks: 
+      - server-connection
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - api
