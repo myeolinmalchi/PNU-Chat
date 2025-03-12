@@ -92,11 +92,9 @@ class P0AssistantServiceV1(BaseAssistantService):
         tool_result_futures = [
             asyncio.gather(
                 *[
-                    self.
-                    call_by_name(tool_name=_tool.value, **{
+                    self.call_by_name(tool_name=_tool.value, **{
                         "departments": [department],
                         "query": q,
-                        "semesters": [],
                     }) for _tool in tool
                 ]
             ) for tool, q in zip(tools, sub_questions)

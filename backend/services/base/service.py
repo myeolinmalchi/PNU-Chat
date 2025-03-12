@@ -22,11 +22,11 @@ class BaseService(ABC, metaclass=HTTPMetaclass):
 class BaseDomainService(Generic[DTO, ORM], BaseService):
 
     @abstractmethod
-    def dto2orm(self, dto: DTO) -> Optional[ORM]:
+    def dto2orm(self, dto: DTO, **kwargs) -> Optional[ORM]:
         pass
 
     @abstractmethod
-    def orm2dto(self, orm: ORM) -> Optional[DTO]:
+    def orm2dto(self, orm: ORM, **kwargs) -> Optional[DTO]:
         pass
 
 

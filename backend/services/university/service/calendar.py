@@ -28,7 +28,7 @@ class CalendarService(BaseDomainService[CalendarDTO, CalendarModel]):
         self.calendar_repo = calendar_repo
 
     @transaction()
-    def dto2orm(self, dto):
+    def dto2orm(self, dto, **_):
         semester = dto["semester"]
         semester_model = self.semester_repo.search_semester_by_dto(semester)
         if not semester_model:
@@ -45,7 +45,7 @@ class CalendarService(BaseDomainService[CalendarDTO, CalendarModel]):
         return None
 
     @transaction()
-    def orm2dto(self, orm):
+    def orm2dto(self, orm, **_):
         return CalendarDTO(
             **{
                 "date_range": {
@@ -67,6 +67,7 @@ class CalendarService(BaseDomainService[CalendarDTO, CalendarModel]):
             dto["description"],
         )
 
+    @transaction()
     def get_related_semester(self, orm: SemesterModel) -> Optional[SemesterModel]:
 
         semester = None

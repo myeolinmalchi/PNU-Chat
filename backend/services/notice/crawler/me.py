@@ -1,9 +1,10 @@
+"""기계공학부 공지사항 크롤러"""
+
 from typing import List
 
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 
-from services.base import BaseCrawler
 from services.notice import NoticeDTO
 
 import re

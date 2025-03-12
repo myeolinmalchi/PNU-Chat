@@ -33,7 +33,7 @@ class BaseSupportService(BaseDomainService[SupportDTO, SupportModel]):
         self.support_crawler = support_crawler
         self.support_embedder = support_embedder
 
-    def dto2orm(self, dto) -> Optional[SupportModel]:
+    def dto2orm(self, dto, **_) -> Optional[SupportModel]:
 
         def parse_info(dto: SupportDTO):
             info = dto.get("info")
@@ -95,7 +95,7 @@ class BaseSupportService(BaseDomainService[SupportDTO, SupportModel]):
 
         return SupportModel(**support_dict)
 
-    def orm2dto(self, orm):
+    def orm2dto(self, orm, **_):
         #attachments = [{"name": att.name, "url": att.url} for att in orm.attachments]
         info = {
             "title": orm.title,

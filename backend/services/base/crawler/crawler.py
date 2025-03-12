@@ -20,15 +20,24 @@ class ParseHTMLException(Exception):
 class BaseCrawler(Generic[DTO], metaclass=HTTPMetaclass):
 
     async def scrape_detail_async(
-        self, urls: List[str], session: Optional[ClientSession] = None, **kwargs
+        self,
+        urls: List[str],
+        session: Optional[ClientSession] = None,
+        **kwargs,
     ) -> List[DTO]:
+        """상세페이지 정보 추출하여 dto 리스트로 반환"""
+
         if session is None:
             raise ValueError("parameter 'session' cannot be None.")
 
         return await self._scrape_detail_async(urls, session=session, **kwargs)
 
-    async def _scrape_detail_async(self, urls: List[str], session: ClientSession,
-                                   **kwargs) -> List[DTO]:
+    async def _scrape_detail_async(
+        self,
+        urls: List[str],
+        session: ClientSession,
+        **_,
+    ) -> List[DTO]:
 
         dtos = await scrape_async(
             url=urls,
@@ -51,4 +60,5 @@ class BaseCrawler(Generic[DTO], metaclass=HTTPMetaclass):
 
     @abstractmethod
     def _parse_detail(self, soup: BeautifulSoup) -> DTO | ParseHTMLException:
+        """`BeautifulSoup` 인스턴스에서 상세 정보 추출하여 dto로 반환"""
         pass

@@ -1,13 +1,16 @@
 from abc import abstractmethod
-from typing import Dict, List, NotRequired, Optional, TypedDict, Unpack
+from typing import Dict, Generic, List, NotRequired, Optional, TypeVar, TypedDict, Unpack
 
 from pgvector.sqlalchemy import SparseVector
 from sqlalchemy import Integer, cast, desc, func, and_, or_
 from db.models import NoticeModel, NoticeChunkModel, DepartmentModel
 from db.common import V_DIM
 from db.models.calendar import SemesterModel
+from db.models.notice import PNUNoticeModel
 from services.base.types.calendar import DateRangeType
 from .base import BaseRepository
+
+NoticeModelT = TypeVar("NoticeModelT", NoticeModel, PNUNoticeModel)
 
 
 class NoticeSearchFilterType(TypedDict, total=False):
@@ -16,12 +19,102 @@ class NoticeSearchFilterType(TypedDict, total=False):
     date_ranges: List[DateRangeType]
     categories: List[str]
     semester_ids: NotRequired[List[int]]
+    with_important: NotRequired[bool]
+    only_important: NotRequired[bool]
+    urls: NotRequired[List[str]]
 
 
-class INoticeRepository(BaseRepository[NoticeModel]):
+class INoticeRepository(
+    Generic[NoticeModelT],
+):
+
+    @abstractmethod
+    def create_all(self, objects: List[NoticeModelT]) -> List[NoticeModelT]:
+        pass
+
+    @abstractmethod
+    def update_semester(
+        self,
+        semester: SemesterModel,
+        batch: Optional[int] = None,
+        offset: Optional[int] = None,
+        **kwargs: Unpack[NoticeSearchFilterType],
+    ) -> List[NoticeModelT]:
+        pass
+
+    @abstractmethod
+    def find_last_notice(self, **kwargs: Unpack[NoticeSearchFilterType]):
+        pass
+
+    @abstractmethod
+    def search_hybrid(
+        self,
+        dense_vector: Optional[List[float]] = None,
+        sparse_vector: Optional[Dict[int, float]] = None,
+        lexical_ratio: float = 0.5,
+        rrf_k: int = 120,
+        k: int = 5,
+        **kwargs: Unpack[NoticeSearchFilterType]
+    ) -> List[NoticeModelT]:
+        pass
+
+    @abstractmethod
+    def search_chunks_hybrid(
+        self,
+        dense_vector: Optional[List[float]] = None,
+        sparse_vector: Optional[Dict[int, float]] = None,
+        lexical_ratio: float = 0.5,
+        rrf_k: int = 120,
+        k: int = 5,
+        **kwargs: Unpack[NoticeSearchFilterType]
+    ) -> List[NoticeChunkModel]:
+        pass
+
+    @abstractmethod
+    def search_total_records(
+        self,
+        **kwargs: Unpack[NoticeSearchFilterType],
+    ) -> int:
+        pass
+
+    @abstractmethod
+    def delete_all(self, **kwargs: Unpack[NoticeSearchFilterType]) -> int:
+        pass
+
+
+class PNUNoticeRepository(
+    BaseRepository[PNUNoticeModel],
+):
+
+    def find_last_notice(self):
+        notice_id = cast(func.split_part(PNUNoticeModel.url, '=', 6), Integer).label("pnu_notice_id")
+        last_notice = self.session.query(PNUNoticeModel, notice_id).order_by(desc(notice_id)).first()
+
+        return last_notice[0] if last_notice else None
+
+    def delete_all(self, urls: List[str] = []):
+        if urls:
+            affected = self.session.query(PNUNoticeModel).filter(NoticeModel.url.in_(urls)).delete()
+        else:
+            affected = self.session.query(PNUNoticeModel).delete()
+        return affected
+
+
+class NoticeRepository(
+    BaseRepository[NoticeModel],
+):
+
+    def delete_all(self, **kwargs: Unpack[NoticeSearchFilterType]):
+        filter = self._get_filters(**kwargs)
+        affected = self.session.query(NoticeModel).filter(filter).delete()
+        return affected
 
     def _get_filters(self, **kwargs: Unpack[NoticeSearchFilterType]):
         filters = []
+
+        if "urls" in kwargs:
+            filters.append(NoticeModel.url.in_(kwargs["urls"]))
+
         if "year" in kwargs:
             year = kwargs["year"]
             filters.append(NoticeModel.date >= f"{year}-01-01 00:00:00")
@@ -59,57 +152,17 @@ class INoticeRepository(BaseRepository[NoticeModel]):
             categories = kwargs["categories"]
             filters.append(NoticeModel.category.in_(categories))
 
-        return and_(*filters)
+        filter = and_(*filters)
 
-    @abstractmethod
-    def update_semester(
-        self,
-        semester: SemesterModel,
-        batch: Optional[int] = None,
-        offset: Optional[int] = None,
-        **kwargs: Unpack[NoticeSearchFilterType],
-    ) -> List[NoticeModel]:
-        pass
+        if "with_important" in kwargs:
+            with_important = kwargs.get("with_important")
+            filter = or_(filter, NoticeModel.is_important == with_important)
 
-    @abstractmethod
-    def find_last_notice(self, **kwargs: Unpack[NoticeSearchFilterType]):
-        pass
+        if "only_important" in kwargs:
+            only_important = kwargs.get("only_important")
+            filter = and_(filter, NoticeModel.is_important == only_important)
 
-    def delete_all(self, **kwargs: Unpack[NoticeSearchFilterType]):
-        filter = self._get_filters(**kwargs)
-        affected = self.session.query(NoticeModel).filter(filter).delete()
-        return affected
-
-    @abstractmethod
-    def search_hybrid(
-        self,
-        dense_vector: Optional[List[float]] = None,
-        sparse_vector: Optional[Dict[int, float]] = None,
-        lexical_ratio: float = 0.5,
-        rrf_k: int = 120,
-        k: int = 5,
-        **kwargs: Unpack[NoticeSearchFilterType]
-    ) -> List[NoticeModel]:
-        pass
-
-    @abstractmethod
-    def search_chunks_hybrid(
-        self,
-        dense_vector: Optional[List[float]] = None,
-        sparse_vector: Optional[Dict[int, float]] = None,
-        lexical_ratio: float = 0.5,
-        rrf_k: int = 120,
-        k: int = 5,
-        **kwargs: Unpack[NoticeSearchFilterType]
-    ) -> List[NoticeChunkModel]:
-        pass
-
-    @abstractmethod
-    def search_total_records(self, **kwargs: Unpack[NoticeSearchFilterType]) -> int:
-        pass
-
-
-class NoticeRepository(INoticeRepository):
+        return filter
 
     def update_semester(self, semester, batch=None, offset=None, **kwargs):
 

@@ -30,7 +30,7 @@ class ApplicationService(BaseService):
 
     def __init__(
         self,
-        notice_service: notice.BaseNoticeSearchService,
+        notice_service: notice.IDepartmentNoticeSearchService,
         professor_service: professor.ProfessorService,
         support_service: support.BaseSupportSearchService,
         calendar_service: university.CalendarService,

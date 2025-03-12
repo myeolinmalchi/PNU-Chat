@@ -3,11 +3,11 @@ from dependency_injector.wiring import Provide, inject
 from containers.crawler.notice import NoticeCrawlerContainer
 from db.models.calendar import SemesterTypeEnum
 from services.base.types.calendar import SemesterType
-from services.notice import NoticeCrawlerService
+from services.notice.crawler.base import BaseNoticeCrawlerService
 
 
 @inject
-def run(service: NoticeCrawlerService = Provide[NoticeCrawlerContainer.notice_service]):
+def run(service: BaseNoticeCrawlerService = Provide[NoticeCrawlerContainer.notice_service]):
     years = [2023, 2024, 2025]
     types: List[SemesterTypeEnum] = [
         SemesterTypeEnum.spring_semester,
@@ -16,7 +16,7 @@ def run(service: NoticeCrawlerService = Provide[NoticeCrawlerContainer.notice_se
         SemesterTypeEnum.winter_vacation,
     ]
     semesters = [SemesterType(year=year, type_=type_) for year in years for type_ in types]
-    affected = service.add_semester_info(semesters, department="정보컴퓨터공학부")
+    affected = service.add_semester_info(semesters)
     print("affected: ", affected)
 
 

@@ -14,7 +14,7 @@ class NoticeContainer(containers.DeclarativeContainer):
     notice_embedder = providers.Singleton(notice.NoticeEmbedder)
 
     notice_service = providers.Factory(
-        notice.NoticeServiceV1,
+        notice.DepartmentNoticeSearchServiceV1,
         notice_repo=notice_repo,
         notice_embedder=notice_embedder,
         calendar_service=calendar_service,

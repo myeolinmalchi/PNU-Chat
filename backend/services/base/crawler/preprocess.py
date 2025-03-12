@@ -1,4 +1,3 @@
-from typing import List
 from bs4 import BeautifulSoup, Tag
 from bs4.element import NavigableString, PageElement
 from config.logger import _logger

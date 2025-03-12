@@ -3,7 +3,7 @@ from itertools import chain
 
 from services.base import BaseEmbedder
 from services.base.embedder import embed_async
-from services.notice import NoticeDTO
+from services.notice.dto import NoticeDTO
 
 
 class NoticeEmbedder(BaseEmbedder[NoticeDTO]):
