@@ -22,7 +22,7 @@ class AssistantContainer(containers.DeclarativeContainer):
         agents.P0_1,
         client=openai_client,
         temperature=0.9,
-        model="gpt-4o",
+        model=model,
     )
     p0_2 = providers.Factory(
         agents.P0_2,

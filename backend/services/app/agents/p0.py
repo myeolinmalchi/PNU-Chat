@@ -27,12 +27,14 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
         model: ChatModel = "gpt-4o-mini",
         temperature: float | openai.NotGiven = openai.NotGiven(),
         response_format: type[ResponseFormatT] | openai.NotGiven = openai.NotGiven(),
+        store: bool = False,
     ):
         self.client = client
         self.model = model
         self.temperature = temperature
         self.response_format = response_format
         self._system_prompt = system_prompt
+        self.store = store
 
     @property
     def system_prompt(self) -> ChatCompletionMessageParam:
@@ -59,6 +61,7 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
             messages=messages,
             temperature=self.temperature,
             response_format=self.response_format,
+            store=self.store,
         )
 
         parsed = completion.choices[0].message.parsed
@@ -169,7 +172,10 @@ class P0(P0_Base[P0_ResponseFormat]):
             "당신은 주어진 Context를 참고하여 사용자의 질문에 친절하게 답해야 합니다.\n"
             "\n"
             "properties:\n"
-            "`paragraph`: 답변의 일부로, 문단 단위입니다. 마크다운 문서로 작성해야하며, 중복되어서는 안됩니다.\n"
+            "`paragraph`: "
+            "  - 답변의 일부로, 문단 단위로 작성하세요."
+            "  - 마크다운 포맷으로 작성해야하며, 각 문단의 내용이 중복되어서는 안됩니다.\n"
+            "  - 각 문단의 내용은 일관되어야 하며, 모순이 있어서는 안됩니다.\n"
             "`urls`: 문단과 직접적으로 연관이 있는 문서의 url 목록입니다.\n"
             "\n"
             "instructions:\n"
@@ -185,6 +191,7 @@ class P0(P0_Base[P0_ResponseFormat]):
             temperature=temperature,
             response_format=P0_ResponseFormat,
             model=model,
+            store=True,
         )
 
     """

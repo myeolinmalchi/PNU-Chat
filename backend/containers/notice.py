@@ -11,12 +11,10 @@ class NoticeContainer(containers.DeclarativeContainer):
     calendar_service = providers.Dependency(university.CalendarService)
 
     notice_repo = providers.Singleton(repo.NoticeRepository)
-    notice_embedder = providers.Singleton(notice.NoticeEmbedder)
 
     notice_service = providers.Factory(
         notice.DepartmentNoticeSearchServiceV1,
         notice_repo=notice_repo,
-        notice_embedder=notice_embedder,
         calendar_service=calendar_service,
         university_repo=univ_repo,
         semester_repo=semester_repo,
