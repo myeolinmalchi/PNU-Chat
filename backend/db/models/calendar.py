@@ -50,6 +50,7 @@ class SemesterModel(Base):
     courses = relationship("CourseModel", back_populates="semester")
 
     notices = relationship("NoticeModel", back_populates="semester")
+    pnu_notices = relationship("PNUNoticeModel", back_populates="semester")
 
 
 class CalendarModel(Base):
