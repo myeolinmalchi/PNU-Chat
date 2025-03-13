@@ -456,6 +456,7 @@
           "urls": {
             "base": "https://soc.pusan.ac.kr",
             "notices": {
+              "공지": "/soc/42010/subview.do",
               "장학": "/soc/42010/subview.do"
             },
             "professors": [
@@ -468,6 +469,7 @@
           "urls": {
             "base": "https://psy.pusan.ac.kr",
             "notices": {
+              "공지": "/psy/15495/subview.do",
               "취업": "/psy/15498/subview.do"
             },
             "professors": [
@@ -578,6 +580,7 @@
           "urls": {
             "base": "https://chem.pusan.ac.kr",
             "notices": {
+              "공지": "/chem/15255/subview.do",
               "취업": "/chem/15257/subview.do"
             },
             "professors": [
@@ -622,6 +625,7 @@
           "urls": {
             "base": "https://geology.pusan.ac.kr",
             "notices": {
+              "공지": "/geology/15533/subview.do",
               "자유": "/geology/15535/subview.do",
               "취업": "/geology/15551/subview.do"
             },
@@ -635,6 +639,7 @@
           "urls": {
             "base": "https://atmos.pusan.ac.kr",
             "notices": {
+              "공지": "/atmos/15905/subview.do",
               "자유": "/atmos/15906/subview.do"
             },
             "professors": [
@@ -647,6 +652,7 @@
           "urls": {
             "base": "https://ocean.pusan.ac.kr",
             "notices": {
+              "공지": "/ocean/15778/subview.do",
               "장학": "/ocean/15783/subview.do",
               "취업": "/ocean/15779/subview.do"
             },
@@ -761,6 +767,7 @@
           "urls": {
             "base": "https://music.pusan.ac.kr",
             "notices": {
+              "공지": "/music/16183/subview.do",
               "취업": "/music/16187/subview.do"
             },
             "professors": [
@@ -852,6 +859,7 @@
           "urls": {
             "base": "https://his.pusan.ac.kr",
             "notices": {
+              "취업": "/horticulture/21127/subview.do",
               "취업": "/horticulture/21122/subview.do",
               "자유": "/horticulture/21131/subview.do"
             },
@@ -877,6 +885,7 @@
           "urls": {
             "base": "https://animal.pusan.ac.kr",
             "notices": {
+              "공지": "/animal/16623/subview.do",
               "취업": "/animal/16620/subview.do"
             },
             "professors": [
@@ -889,6 +898,7 @@
           "urls": {
             "base": "https://bm.pusan.ac.kr",
             "notices": {
+              "취업": "/bm/16433/subview.do",
               "취업": "/bm/16429/subview.do"
             },
             "professors": [
@@ -1007,7 +1017,7 @@
           "urls": {
             "base": "https://omse.pusan.ac.kr",
             "notices": {
-              "취업": "/omse/16247/subview.do"
+              "공지": "/omse/16246/subview.do"
             },
             "professors": [
               "/omse/16210/subview.do"
@@ -1019,6 +1029,7 @@
           "urls": {
             "base": "https://chemeng.pusan.ac.kr",
             "notices": {
+              "학사": "/chemeng/15735/subview.do",
               "취업/장학": "/chemeng/15737/subview.do"
             },
             "professors": [
@@ -1031,6 +1042,7 @@
           "urls": {
             "base": "https://pnuenv.pusan.ac.kr",
             "notices": {
+              "공지": "/pnuenv/15177/subview.do",
               "취업": "/pnuenv/15180/subview.do"
             },
             "professors": [
@@ -1100,6 +1112,7 @@
           "urls": {
             "base": "https://ie.pusan.ac.kr",
             "notices": {
+              "공지": "/ie/73110/subview.do",
               "취업": "/ie/19428/subview.do"
             },
             "professors": [
@@ -1112,6 +1125,7 @@
           "urls": {
             "base": "https://aerospace.pusan.ac.kr",
             "notices": {
+              "공지": "/aerospace/16375/subview.do",
               "장학": "/aerospace/16367/subview.do",
               "취업": "/aerospace/16368/subview.do"
             },
@@ -1139,6 +1153,7 @@
           "urls": {
             "base": "https://archi.pusan.ac.kr",
             "notices": {
+              "학부": "/archi/49898/subview.do",
               "취업": "/archi/48576/subview.do",
               "자유": "/archi/19645/subview.do"
             },
@@ -1152,6 +1167,7 @@
           "urls": {
             "base": "https://urban.pusan.ac.kr",
             "notices": {
+              "공지": "/urban/17084/subview.do",
               "취업": "/urban/17086/subview.do"
             },
             "professors": [
@@ -1182,6 +1198,7 @@
           "urls": {
             "base": "https://nanomecha.pusan.ac.kr",
             "notices": {
+              "공지": "/nanomecha/16506/subview.do",
               "장학": "/nanomecha/16508/subview.do",
               "취업": "/nanomecha/16509/subview.do"
             },
@@ -1195,6 +1212,7 @@
           "urls": {
             "base": "https://energy.pusan.ac.kr",
             "notices": {
+              "학부": "/energy/15619/subview.do",
               "장학": "/energy/15620/subview.do",
               "취업": "/energy/15621/subview.do"
             },
@@ -1208,6 +1226,7 @@
           "urls": {
             "base": "https://ome.pusan.ac.kr",
             "notices": {
+              "공지": "/ome/16652/subview.do",
               "장학": "/ome/16653/subview.do",
               "취업": "/ome/16654/subview.do"
             },
@@ -1243,6 +1262,7 @@
           "urls": {
             "base": "https://bce.pusan.ac.kr",
             "notices": {
+              "공지": "/bce/50189/subview.do",
               "대학원": "/bce/51703/subview.do",
               "취업": "/bce/72281/subview.do"
             },
@@ -1261,6 +1281,7 @@
           "urls": {
             "base": "https://cdfs.pusan.ac.kr",
             "notices": {
+              "공지": "/cdfs/17266/subview.do",
               "취업": "/cdfs/17269/subview.do"
             },
             "professors": [
