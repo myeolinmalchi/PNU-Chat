@@ -28,6 +28,7 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
         temperature: float | openai.NotGiven = openai.NotGiven(),
         response_format: type[ResponseFormatT] | openai.NotGiven = openai.NotGiven(),
         store: bool = False,
+        repeat_penalty: float | openai.NotGiven = openai.NotGiven(),
     ):
         self.client = client
         self.model = model
@@ -35,6 +36,7 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
         self.response_format = response_format
         self._system_prompt = system_prompt
         self.store = store
+        self.repeat_penalty = repeat_penalty
 
     @property
     def system_prompt(self) -> ChatCompletionMessageParam:
@@ -106,7 +108,8 @@ class P0_2(P0_Base[P0_2_ResponseFormat]):
             "\n"
             "tools:\n"
             "- `search_supports`: 학생지원시스템에서 학교 생활과 관련된 일반적인 정보를 검색합니다.\n"
-            "- `search_notices`: 학과 공지사항에서 학교 생활 및 학과 생활과 관련된 더욱 구체적인 정보를 검색합니다.\n"
+            "- `search_notices`: 학과 공지사항에서 학교 생활 및 학과 생활과 관련된 구체적인 정보를 검색합니다.\n"
+            "- `search_pnu_notices`: 학교 공통 공지사항에서 학교 생활 및 공모전 등과 관련된 구체적인 정보를 검색합니다."
         )
 
         super().__init__(
@@ -192,6 +195,7 @@ class P0(P0_Base[P0_ResponseFormat]):
             response_format=P0_ResponseFormat,
             model=model,
             store=True,
+                                               #repeat_penalty=0.1
         )
 
     """

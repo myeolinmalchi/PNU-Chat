@@ -4,6 +4,7 @@ from typing import Dict, List, NotRequired, Optional, Required, TypedDict, Unpac
 from aiohttp import ClientSession
 
 from db.repositories.base import transaction
+from db.repositories.notice import NoticeRepository
 from services.base import SemesterType
 from services.base.embedder import embed_async, rerank_async
 from services.notice import NoticeDTO
@@ -37,6 +38,9 @@ class DepartmentNoticeSearchServiceV1(IDepartmentNoticeSearchService):
 
     async def search_notices_async(self, query, session=None, **opts):
         """search without reranker"""
+
+        if type(self.notice_repo) is not NoticeRepository:
+            raise ValueError
 
         if not session:
             raise ValueError("'session' must be provided")
@@ -101,6 +105,9 @@ class DepartmentNoticeSearchServiceV1(IDepartmentNoticeSearchService):
 class DepartmentNoticeSearchServiceV2(IDepartmentNoticeSearchService):
 
     async def search_notices_async(self, query, session=None, **opts):
+
+        if type(self.notice_repo) is not NoticeRepository:
+            raise ValueError
 
         if not session:
             raise ValueError("'session' must be provided")

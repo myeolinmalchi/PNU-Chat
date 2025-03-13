@@ -6,7 +6,7 @@ from sqlalchemy import Integer, cast, desc, func, and_, or_
 from db.models import NoticeModel, NoticeChunkModel, DepartmentModel
 from db.common import V_DIM
 from db.models.calendar import SemesterModel
-from db.models.notice import PNUNoticeModel
+from db.models.notice import PNUNoticeChunkModel, PNUNoticeModel
 from services.base.types.calendar import DateRangeType
 from .base import BaseRepository
 
@@ -18,6 +18,15 @@ class NoticeSearchFilterType(TypedDict, total=False):
     departments: List[str]
     date_ranges: List[DateRangeType]
     categories: List[str]
+    semester_ids: NotRequired[List[int]]
+    with_important: NotRequired[bool]
+    only_important: NotRequired[bool]
+    urls: NotRequired[List[str]]
+
+
+class PNUNoticeSearchFilterType(TypedDict, total=False):
+    year: int
+    date_ranges: List[DateRangeType]
     semester_ids: NotRequired[List[int]]
     with_important: NotRequired[bool]
     only_important: NotRequired[bool]
@@ -98,6 +107,105 @@ class PNUNoticeRepository(
         else:
             affected = self.session.query(PNUNoticeModel).delete()
         return affected
+
+    def _get_filters(self, **kwargs: Unpack[PNUNoticeSearchFilterType]):
+        filters = []
+
+        if "urls" in kwargs:
+            filters.append(PNUNoticeModel.url.in_(kwargs["urls"]))
+
+        if "year" in kwargs:
+            year = kwargs["year"]
+            filters.append(PNUNoticeModel.date >= f"{year}-01-01 00:00:00")
+            filters.append(PNUNoticeModel.date < f"{year + 1}-01-01 00:00:00")
+
+        if "semester_ids" in kwargs:
+            semester_ids = kwargs['semester_ids']
+            filters.append(PNUNoticeModel.semester_id.in_(semester_ids))
+
+        if "date_ranges" in kwargs:
+            date_ranges = kwargs["date_ranges"]
+            if date_ranges and len(date_ranges) > 0:
+                date_filters = []
+                for _range in kwargs["date_ranges"]:
+                    st_date = _range["st_date"]
+                    ed_date = _range["ed_date"]
+
+                    date_filters.append(and_(PNUNoticeModel.date >= st_date, PNUNoticeModel.date <= ed_date))
+
+                if len(date_filters) == 1:
+                    filters.append(date_filters[0])
+
+                elif len(date_filters) > 1:
+                    filters.append(or_(*date_filters))
+
+        filter = and_(*filters)
+
+        if "with_important" in kwargs:
+            with_important = kwargs.get("with_important")
+            filter = or_(filter, PNUNoticeModel.is_important == with_important)
+
+        if "only_important" in kwargs:
+            only_important = kwargs.get("only_important")
+            filter = and_(filter, PNUNoticeModel.is_important == only_important)
+
+        return filter
+
+    def search_chunks_hybrid(
+        self,
+        dense_vector=None,
+        sparse_vector=None,
+        lexical_ratio=0.5,
+        rrf_k=120,
+        k=5,
+        **kwargs,
+    ):
+        filter = self._get_filters(**kwargs)
+
+        score_dense_content = 1 - PNUNoticeChunkModel.chunk_vector.cosine_distance(dense_vector)
+        score_lexical_content = -1 * (
+            PNUNoticeChunkModel.chunk_sparse_vector.max_inner_product(SparseVector(sparse_vector, V_DIM))
+        )
+        score_content = func.max((score_lexical_content * lexical_ratio) + score_dense_content *
+                                 (1 - lexical_ratio)).label("score_content")
+
+        score_dense_title = 1 - PNUNoticeModel.title_vector.cosine_distance(dense_vector)
+        score_lexical_title = -1 * (
+            PNUNoticeModel.title_sparse_vector.max_inner_product(SparseVector(sparse_vector, V_DIM))
+        )
+        score_title = ((score_lexical_title * lexical_ratio) + score_dense_title *
+                       (1 - lexical_ratio)).label("score_title")
+
+        rank_content = self.session.query(
+            PNUNoticeChunkModel.id,
+            func.row_number().over(order_by=score_content.desc()).label("rank_content"),
+        ).group_by(PNUNoticeChunkModel.id).join(
+            PNUNoticeModel,
+            PNUNoticeChunkModel.pnu_notice_id == PNUNoticeModel.id,
+        ).filter(filter).subquery()
+
+        rank_title = self.session.query(
+            PNUNoticeChunkModel.id,
+            func.row_number().over(order_by=score_title.desc()).label("rank_title"),
+        ).join(
+            PNUNoticeChunkModel,
+            PNUNoticeChunkModel.pnu_notice_id == PNUNoticeModel.id,
+        ).filter(filter).subquery()
+
+        rrf_score = (1 / (rrf_k + rank_content.c.rank_content) + 1 /
+                     (rrf_k + rank_title.c.rank_title)).label("rrf_score")
+
+        query = (
+            self.session.query(PNUNoticeChunkModel).join(
+                rank_content,
+                PNUNoticeChunkModel.id == rank_content.c.id,
+            ).join(
+                rank_title,
+                PNUNoticeChunkModel.id == rank_title.c.id,
+            ).order_by(rrf_score.desc()).limit(k)
+        )
+
+        return query.all()
 
 
 class NoticeRepository(

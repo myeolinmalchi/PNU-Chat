@@ -7,7 +7,7 @@ from db.common import V_DIM
 from db.models import AttachmentModel, NoticeChunkModel, NoticeModel, DepartmentModel
 from db.models.notice import PNUNoticeAttachmentModel, PNUNoticeChunkModel, PNUNoticeModel
 
-from db.repositories.notice import INoticeRepository
+from db.repositories.notice import NoticeRepository, PNUNoticeRepository
 from db.repositories.university import UniversityRepository
 
 from db.repositories.calendar import SemesterRepository
@@ -29,7 +29,7 @@ class BaseNoticeService(
     def __init__(
         self,
         semester_repo: SemesterRepository,
-        notice_repo: INoticeRepository[NoticeModelT],
+        notice_repo: NoticeRepository | PNUNoticeRepository,
         calendar_service: Optional[CalendarService] = None,
     ):
         self.semester_repo = semester_repo

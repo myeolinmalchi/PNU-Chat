@@ -10,6 +10,7 @@ from config.config import get_notice_urls
 from db.models.calendar import SemesterTypeEnum
 from db.models.notice import NoticeModel
 from db.repositories.base import transaction
+from db.repositories.notice import NoticeRepository
 from services.base import ParseHTMLException
 from services.base.crawler import preprocess, scrape
 
@@ -226,6 +227,8 @@ class DepartmentNoticeCrawlerService(
         is_important: bool = False,
         parse_attachment: bool = False,
     ):
+        if type(self.notice_repo) is not NoticeRepository:
+            raise ValueError
 
         logger("Scrape notices...")
         notices = await self.notice_crawler.scrape_detail_async(urls)
@@ -373,6 +376,9 @@ class DepartmentNoticeCrawlerService(
         batch_size: int = 500,
         urls: List[str] = [],
     ):
+        if type(self.notice_repo) is not NoticeRepository:
+            raise ValueError
+
         if not semesters:
             years = [2023, 2024, 2025]
             types: List[SemesterTypeEnum] = [

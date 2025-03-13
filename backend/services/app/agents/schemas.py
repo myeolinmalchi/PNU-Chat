@@ -21,6 +21,7 @@ class P0_1_ResponseFormat(BaseModel):
 class P0_2_ToolEnum(Enum):
     search_notices = "search_notices"
     search_supports = "search_supports"
+    search_pnu_notices = "search_pnu_notices"
     #search_calendars = "search_calendars"
 
 

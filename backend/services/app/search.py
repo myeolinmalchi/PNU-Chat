@@ -19,6 +19,7 @@ class AppSearchService(base.BaseService):
         calendar_service: university.CalendarService,
         univ_service: university.UniversityService,
         semester_repo: repositories.SemesterRepository,
+        pnu_notice_service: notice.IPNUNoticeSearchService,
     ):
         self.notice_service = notice_service
         self.professor_service = professor_service
@@ -26,6 +27,7 @@ class AppSearchService(base.BaseService):
         self.calendar_service = calendar_service
         self.univ_service = univ_service
         self.semester_repo = semester_repo
+        self.pnu_notice_service = pnu_notice_service
 
     def load_today_info(self):
         now = datetime.now()
@@ -39,8 +41,12 @@ class AppSearchService(base.BaseService):
 
     class SearchNoticeOpts(SearchOpts):
         query: str
-        semesters: Required[List[base.SemesterType]]
+        semesters: NotRequired[List[base.SemesterType]]
         departments: Required[List[str]]
+
+    class SearchPNUNoticeOpts(SearchOpts):
+        query: str
+        semesters: Required[List[base.SemesterType]]
 
     class SearchProfessorOpts(SearchOpts):
         query: str
@@ -60,6 +66,19 @@ class AppSearchService(base.BaseService):
         notices = await self.notice_service.search_notices_async(
             query,
             departments=departments,
+            semesters=semesters,
+        )
+        return [self.notice_service.dto2context(notice) for notice in notices]
+
+    async def search_pnu_notices(
+        self,
+        query: str,
+        semesters: List[base.SemesterType] = [],
+        **_,
+    ):
+        logger(f"search query(pnu notice): {query}")
+        notices = await self.pnu_notice_service.search_notices_async(
+            query,
             semesters=semesters,
         )
         return [self.notice_service.dto2context(notice) for notice in notices]

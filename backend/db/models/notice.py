@@ -60,8 +60,6 @@ class NoticeChunkModel(Base):
     """게시글 본문 또는 첨부파일 청크 테이블"""
     __tablename__ = "notice_content_chunks"
 
-    is_important: Mapped[bool] = mapped_column(Boolean, nullable=True, index=True)
-
     notice_id: Mapped[int] = mapped_column(
         ForeignKey("notices.id", ondelete="CASCADE"),
         index=True,
@@ -85,6 +83,7 @@ class PNUNoticeModel(Base):
     __tablename__ = "pnu_notices"
 
     url: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    is_important: Mapped[bool] = mapped_column(Boolean, nullable=True, index=True)
 
     category: Mapped[str] = mapped_column(String, nullable=True)
 

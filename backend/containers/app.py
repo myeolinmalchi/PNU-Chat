@@ -1,6 +1,7 @@
 from dependency_injector import containers, providers
 from openai import AsyncOpenAI
 
+from db.models.pnu_notice import PNUNoticeContainer
 from services.app import AppSearchService, ApplicationService
 
 from .notice import NoticeContainer
@@ -40,6 +41,12 @@ class AppContainer(containers.DeclarativeContainer):
         calendar_service=calendar_package.calendar_service
     )
 
+    pnu_notice_package = providers.Container(
+        PNUNoticeContainer,
+        semester_repo=semester_repo,
+        calendar_service=calendar_package.calendar_service,
+    )
+
     support_package = providers.Container(SupportContainer)
     professor_package = providers.Container(ProfessorContainer, univ_repo=univ_repo)
     univ_package = providers.Container(UniversityContainer, univ_repo=univ_repo)
@@ -48,6 +55,7 @@ class AppContainer(containers.DeclarativeContainer):
         AppSearchService,
         professor_service=professor_package.professor_service,
         notice_service=notice_package.notice_service,
+        pnu_notice_service=pnu_notice_package.notice_service,
         calendar_service=calendar_package.calendar_service,
         support_service=support_package.support_service,
         univ_service=univ_package.univ_service,
