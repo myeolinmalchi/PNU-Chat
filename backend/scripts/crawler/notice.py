@@ -27,6 +27,7 @@ import logging
 
 import warnings
 from config.logger import _logger
+from services.notice.crawler.me import MENoticeCrawlerService
 
 warnings.filterwarnings("ignore")
 
@@ -62,7 +63,10 @@ def init_args():
 
 @inject
 @transaction()
-async def main(notice_service: DepartmentNoticeCrawlerService = Provide[NoticeCrawlerContainer.notice_service]):
+async def main(
+    notice_service: DepartmentNoticeCrawlerService = Provide[NoticeCrawlerContainer.notice_service],
+    me_notice_service: MENoticeCrawlerService = Provide[NoticeCrawlerContainer.me_notice_crawler],
+):
 
     kwargs = init_args()
 
@@ -70,59 +74,45 @@ async def main(notice_service: DepartmentNoticeCrawlerService = Provide[NoticeCr
         from itertools import chain
 
         univs = get_universities()
-        department = kwargs.get("department")
+        department_str: str = kwargs.get("department", "ALL")
         departments = [[dep for dep in deps] for deps in univs.values()]
-        departments = list(chain(*departments)) if department == "ALL" else [department]
-
-        _type = "me" if department == "기계공학부" else "default"
+        departments = list(chain(*departments)) if department_str == "ALL" else department_str.split(",")
 
         reset = kwargs.get("reset", False)
         rows = kwargs.get("rows", 500)
         last_year = kwargs.get("last_year")
         parse_attachment = kwargs.get("parse_attachment")
 
-        if _type == "default":
-            failed_departments: Dict = {}
-            for deps in departments:
-                try:
+        failed_departments: Dict = {}
+        for _dep in departments:
+            try:
+                if _dep == "기계공학부":
+                    await me_notice_service.run_crawling_pipeline(
+                        interval=kwargs.get('interval'),
+                        delay=kwargs.get('delay'),
+                        reset=reset,
+                        rows=rows,
+                        last_year=last_year,
+                        parse_attachment=parse_attachment
+                    )
+                else:
                     st = time.time()
                     await notice_service.run_crawling_pipeline(
                         interval=kwargs.get('interval'),
                         delay=kwargs.get('delay'),
-                        with_embeddings=True,
-                        department=deps,
+                        department=_dep,
                         reset=reset,
                         rows=rows,
                         last_year=last_year,
                         parse_attachment=parse_attachment
                     )
                     ed = time.time()
-                    logger(f"[{deps}] total: {ed - st:.0f} sec")
+                    logger(f"[{_dep}] total: {ed - st:.0f} sec")
 
-                except Exception as e:
-                    failed_departments[department] = e
-                    logger(f"[{deps}] 일시적인 오류가 발생했습니다.", logging.ERROR)
-                    continue
-
-            logger(f"{len(failed_departments)}개의 학과 크롤링에 실패했습니다.")
-            logger(f"실패 학과: {failed_departments.keys()}")
-
-        elif _type == "me":
-            pass
-            """
-            for url_key in ME_URLs:
-                try:
-                    await notice_me_service.run_crawling_pipeline(
-                        interval=kwargs.get('interval'),
-                        delay=kwargs.get('delay'),
-                        url_key=url_key,
-                        with_embeddings=True,
-                        reset=reset
-                    )
-                except Exception as e:
-                    logging.exception(f"[{url_key}] 일시적인 오류가 발생했습니다. ({e})")
-                    continue
-            """
+            except Exception as e:
+                failed_departments[_dep] = e
+                logger(f"[{_dep}] 일시적인 오류가 발생했습니다.", logging.ERROR)
+            continue
 
     except Exception as e:
         logging.exception(f"Error while scraping({e})")
