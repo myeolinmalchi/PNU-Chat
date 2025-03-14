@@ -2,10 +2,12 @@ from abc import abstractmethod
 import asyncio
 from itertools import chain
 import json
-from typing import List
+from typing import List, Optional
 
+from aiohttp import ClientSession
 from openai.types.chat import ChatCompletionMessageParam
 from services.app.search import AppSearchService
+from services.base.embedder import embed_async
 from services.base.service import BaseService
 
 from services.app.agents import p0
@@ -24,12 +26,13 @@ class BaseAssistantService(BaseService):
         self.__dict__.update(kwargs)
 
     @abstractmethod
-    async def pipeline(
+    async def pipeline_async(
         self,
         question: str,
         university: str,
         department: str,
         history: List[ChatCompletionMessageParam] = [],
+        session: Optional[ClientSession] = None,
     ) -> str:
         pass
 
@@ -58,7 +61,17 @@ class P0AssistantServiceV1(BaseAssistantService):
             return await func(**args)
         return func(**args)
 
-    async def pipeline(self, question, university, department, history=[]):
+    async def pipeline_async(
+        self,
+        question,
+        university,
+        department,
+        history=[],
+        session=None,
+    ):
+        if session is None:
+            raise ValueError("'session' must be provided.")
+
         today, semester = self.search_service.load_today_info()
         base_info = (
             f"Date: {today.year}년 {today.month}월 {today.day}일\n"
@@ -75,12 +88,20 @@ class P0AssistantServiceV1(BaseAssistantService):
 
         sub_questions = p0_1_response.sub_questions
 
+        logger("embed sub questions...")
+        sub_question_embeddings = await embed_async(
+            sub_questions,
+            session=session,
+            chunking=False,
+            html=False,
+        )
+
         logger("choose search tools...")
         p0_2_futures = [self.p0_2.inference(base_info + q, history) for q in sub_questions]
         p0_2_responses = await asyncio.gather(*p0_2_futures)
         tools = [res.tools for res in p0_2_responses if res is not None]
 
-        logger("choose search parameters...")
+        #logger("choose search parameters...")
         #p0_3_futures = [self.p0_3.inference(base_info + q) for q in sub_questions]
         #p0_3_responses = await asyncio.gather(*p0_3_futures)
         #tool_params = [res for res in p0_3_responses if res is not None]
@@ -92,12 +113,15 @@ class P0AssistantServiceV1(BaseAssistantService):
         tool_result_futures = [
             asyncio.gather(
                 *[
-                    self.call_by_name(tool_name=_tool.value, **{
-                        "departments": [department],
-                        "query": q,
-                    }) for _tool in tool
+                    self.call_by_name(
+                        tool_name=_tool.value, **{
+                            "departments": [department],
+                            "query": q,
+                            "embeddings": es,
+                        }
+                    ) for _tool in tool
                 ]
-            ) for tool, q in zip(tools, sub_questions)
+            ) for tool, q, es in zip(tools, sub_questions, sub_question_embeddings)
         ]
 
         tool_results = await asyncio.gather(*tool_result_futures)
