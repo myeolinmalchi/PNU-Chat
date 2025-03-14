@@ -44,7 +44,7 @@ async def chat(
         )
         title = completion.choices[0].message.content
 
-    answer = await assistant.pipeline(
+    answer = await assistant.pipeline_async(
         req.question,
         req.university,
         req.department,
