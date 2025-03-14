@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Boolean, Date, ForeignKey, Index, String
+from sqlalchemy import Boolean, Date, ForeignKey, Index, String, UniqueConstraint
 from pgvector.sqlalchemy import Vector, SPARSEVEC
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from db.common import N_DIM, V_DIM, Base
@@ -23,7 +23,7 @@ class NoticeModel(Base):
     url: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     is_important: Mapped[bool] = mapped_column(Boolean, nullable=True, index=True)
 
-    category: Mapped[str] = mapped_column(String, nullable=False)
+    category: Mapped[str] = mapped_column(String, nullable=True)
 
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"), nullable=True)
     department: Mapped[DepartmentModel] = relationship(back_populates="notices", lazy="joined")
