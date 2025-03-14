@@ -1,4 +1,4 @@
-from typing import NotRequired, Required, TypedDict, List
+from typing import NotRequired, Optional, Required, TypedDict, List
 
 from services.base import EmbedResult
 from services.base.dto import BaseDTO
@@ -13,8 +13,8 @@ class AttachmentDTO(TypedDict):
 class NoticeInfoDTO(TypedDict):
     title: str
     content: str
-    category: str
-    department: str
+    category: NotRequired[str]
+    department: NotRequired[str]
     date: str
     author: str
 

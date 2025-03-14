@@ -126,8 +126,8 @@ class BaseNoticeService(
                     <url>{dto["url"]}</url>
                     <date>{info["date"]}</date>
                     <author>{info["author"]}</author>
-                    <department>{info["department"]}</department>
-                    <category>{info["category"]}</category>
+                    {f'<department>{info["department"]}</department>' if "department" in info else ""}
+                    {f'<category>{info["category"]}</category>' if "category" in info else ""}
                 </metadata>
                 {att_content}
                 <content>
@@ -163,7 +163,7 @@ class BaseDepartmentNoticeService(BaseNoticeService[NoticeModel]):
         attachments = self._parse_attachments(dto)
         embeddings = self._parse_embeddings(dto)
 
-        if not info:
+        if not info or "department" not in info:
             return None
 
         department_model = self.university_repo.find_department_by_name(info["department"])
@@ -171,7 +171,10 @@ class BaseDepartmentNoticeService(BaseNoticeService[NoticeModel]):
         if type(department_model) is not DepartmentModel:
             raise ValueError(f"[]")
 
-        del info["department"] # type: ignore
+        del info["department"]
+
+        if is_important and info["title"].startswith("전체게시판공지"):
+            del info["category"]
 
         notice_dict = {
             **info,
