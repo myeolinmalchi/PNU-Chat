@@ -151,6 +151,31 @@ class PNUNoticeRepository(
 
         return filter
 
+    def update_semester(self, semester, batch=None, offset=None, **kwargs):
+
+        filter = self._get_filters(**kwargs)
+
+        st, ed = semester.st_date, semester.ed_date
+        date_filter = and_(PNUNoticeModel.date >= st, PNUNoticeModel.date <= ed)
+        query = self.session.query(PNUNoticeModel).filter(date_filter).filter(filter)
+        if batch:
+            query.limit(batch)
+        if offset:
+            query.offset(offset)
+
+        notices = query.all()
+
+        for notice in notices:
+            setattr(notice, "semester_id", semester.id)
+            self.session.flush()
+
+        return notices
+
+    def search_total_records(self, **kwargs: Unpack[PNUNoticeSearchFilterType]):
+        filter = self._get_filters(**kwargs)
+        count = self.session.query(PNUNoticeModel).filter(filter).count()
+        return count
+
     def search_chunks_hybrid(
         self,
         dense_vector=None,
