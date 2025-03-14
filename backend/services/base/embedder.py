@@ -23,6 +23,7 @@ async def embed_async(
     session: ClientSession,
     chunking: bool = True,
     truncate: bool = True,
+    html: bool = True,
 ) -> List[EmbedResult]:
     pass
 
@@ -33,6 +34,7 @@ async def embed_async(
     session: ClientSession,
     chunking: bool = True,
     truncate: bool = True,
+    html: bool = True,
 ) -> EmbedResult:
     pass
 
@@ -43,8 +45,14 @@ async def embed_async(
     session: ClientSession,
     chunking: bool = True,
     truncate: bool = True,
+    html: bool = True,
 ) -> EmbedResult | List[EmbedResult]:
-    body = {"inputs": texts, "chunking": chunking, "truncate": truncate}
+    body = {
+        "inputs": texts,
+        "chunking": chunking,
+        "truncate": truncate,
+        "html": html,
+    }
     async with session.post(f"{EMBED_URL}/embed", json=body) as res:
         if res.status == 200:
             data = await res.json()
