@@ -999,6 +999,14 @@
     "공과대학": {
       "info": {},
       "departments": {
+        "기계공학부": {
+          "info": {},
+          "urls": {
+            "base": "https://me.pusan.ac.kr",
+            "notices": {},
+            "professors": []
+          }
+        },
         "고분자공학과": {
           "info": {},
           "urls": {
