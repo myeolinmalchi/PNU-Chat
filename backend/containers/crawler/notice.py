@@ -22,3 +22,14 @@ class NoticeCrawlerContainer(containers.DeclarativeContainer):
         university_repo=univ_repo,
         semester_repo=semester_repo,
     )
+
+    me_notice_crawler = providers.Singleton(notice.MENoticeCrawler)
+
+    me_notice_service = providers.Factory(
+        notice.MENoticeCrawlerService,
+        notice_repo=notice_repo,
+        notice_embedder=notice_embedder,
+        notice_crawler=me_notice_crawler,
+        university_repo=univ_repo,
+        semester_repo=semester_repo,
+    )
