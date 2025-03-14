@@ -1,4 +1,3 @@
-"""부산대학교 공통 공지사항 크롤러"""
 import asyncio
 from typing import Callable, List, Optional, Tuple
 from urllib.parse import parse_qs
@@ -6,14 +5,16 @@ from urllib.parse import parse_qs
 from aiohttp import ClientSession
 from tqdm import tqdm
 
+from db.models.calendar import SemesterTypeEnum
 from db.models.notice import PNUNoticeModel
 from db.repositories.base import transaction
+from db.repositories.notice import PNUNoticeRepository
 from services.base import ParseHTMLException
 from services.base.crawler import preprocess, scrape
 
 from urllib3.util import parse_url
 
-from services.base.types.calendar import SemesterType
+from services.base.types.calendar import DateRangeType, SemesterType
 from services.notice import NoticeDTO
 from config.logger import _logger
 from services.notice.base import BasePNUNoticeService
@@ -265,6 +266,9 @@ class PNUNoticeCrawlerSerivce(
         parse_attachment: bool = False,
     ) -> Tuple[List[NoticeDTO], int]:
 
+        if type(self.notice_repo) is not PNUNoticeRepository:
+            raise ValueError
+
         logger("Scrape notices...")
         notices = await self.notice_crawler.scrape_detail_async(urls)
         logger("Done.")
@@ -305,6 +309,12 @@ class PNUNoticeCrawlerSerivce(
             logger("Create notices...")
             notice_models = self.notice_repo.create_all(notice_models)
             dtos = list(map(self.orm2dto, notice_models))
+            logger("Done.")
+
+        with transaction():
+            logger("Update semester indexes...")
+            urls = [dto["url"] for dto in dtos]
+            self.add_semester_info(urls=urls)
             logger("Done.")
 
         return dtos, curr_pages
@@ -356,7 +366,45 @@ class PNUNoticeCrawlerSerivce(
 
         logger("Done.")
 
+        dtos += important_dtos
+
         return dtos
 
-    def add_semester_info(self, semesters: List[SemesterType], batch_size: int = 500) -> int:
-        return super().add_semester_info(semesters, batch_size)
+    def add_semester_info(
+        self,
+        semesters: List[SemesterType] = [],
+        batch_size: int = 500,
+        urls: List[str] = [],
+    ) -> int:
+        if not semesters:
+            years = [2023, 2024, 2025]
+            types: List[SemesterTypeEnum] = [
+                SemesterTypeEnum.spring_semester,
+                SemesterTypeEnum.summer_vacation,
+                SemesterTypeEnum.fall_semester,
+                SemesterTypeEnum.winter_vacation,
+            ]
+            semesters = [SemesterType(year=year, type_=type_) for year in years for type_ in types]
+
+        if not self.semester_repo:
+            raise ValueError("'semester_repo' not provided")
+        with transaction():
+            semester_models = self.semester_repo.search_semester_by_dtos(semesters)
+
+        affected = 0
+        for semester_model in semester_models:
+
+            st, ed = semester_model.st_date, semester_model.ed_date
+            date_range = DateRangeType(st_date=st, ed_date=ed)
+            total_records = self.notice_repo.search_total_records(date_ranges=[date_range], urls=urls)
+
+            from tqdm import tqdm
+            pbar = tqdm(
+                range(0, total_records, batch_size),
+                desc=f"학기 정보 추가({semester_model.year}-{semester_model.type_})",
+            )
+            for offset in pbar:
+                notices = self.notice_repo.update_semester(semester_model, batch_size, offset, urls=urls)
+                affected += len(notices)
+
+        return affected

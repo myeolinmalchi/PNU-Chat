@@ -50,6 +50,8 @@ class NoticeCrawler(crawler.BaseNoticeCrawler):
             return ParseHTMLException("<table>이 존재하지 않습니다.")
 
         is_important = kwargs.get("is_important", False)
+        is_common = kwargs.get("is_common", False)
+
         table_rows = table_element.select(SELECTORs['list_important' if is_important else 'list'])
 
         results = []
@@ -66,6 +68,13 @@ class NoticeCrawler(crawler.BaseNoticeCrawler):
             date = datetime.strptime(date_str, "%Y.%m.%d").date()
 
             href = str(anchor["href"])
+
+            if is_important and is_common and row.select_one("td > span._artclTnotice") is None:
+                continue
+
+            if is_important and not is_common and row.select_one("td > span._artclNnotice") is None:
+                continue
+
             results.append((href, date))
 
         return results
@@ -90,7 +99,11 @@ class NoticeCrawler(crawler.BaseNoticeCrawler):
 
         _url = parse_url(url)
 
-        parse_paths = lambda soup: self._parse_paths_from_table_element(soup, is_important=True)
+        parse_paths = lambda soup: self._parse_paths_from_table_element(
+            soup,
+            is_important=True,
+            is_common=kwargs.get("is_common", False),
+        )
 
         results_with_error = await scrape.scrape_async(
             url=[url],
@@ -119,7 +132,6 @@ class NoticeCrawler(crawler.BaseNoticeCrawler):
         url = kwargs.get("url")
         rows = kwargs.get("rows", 500)
         batch_size = kwargs.get("batch_size", 50)
-        last_year = kwargs.get("last_year")
 
         if not url:
             raise ValueError("'url' must be provided")
@@ -222,8 +234,8 @@ class DepartmentNoticeCrawlerService(
         self,
         urls: List[str],
         department: str,
-        category: str,
         base_url: str,
+        category: str,
         is_important: bool = False,
         parse_attachment: bool = False,
     ):
@@ -234,9 +246,9 @@ class DepartmentNoticeCrawlerService(
         notices = await self.notice_crawler.scrape_detail_async(urls)
         logger("Done.")
 
-        def add_info(notice: NoticeDTO, **kwargs) -> NoticeDTO:
-            for key, value in kwargs.items():
-                notice["info"][key] = value
+        def add_info(notice: NoticeDTO) -> NoticeDTO:
+            notice["info"]["department"] = department
+            notice["info"]["category"] = category
 
             notice["attachments"] = [{
                 "name": att["name"],
@@ -245,13 +257,7 @@ class DepartmentNoticeCrawlerService(
 
             return notice
 
-        notices = list(
-            map(lambda notice: add_info(
-                notice=notice,
-                department=department,
-                category=category,
-            ), notices)
-        )
+        notices = list(map(add_info, notices))
 
         curr_pages = 0
 
@@ -287,6 +293,10 @@ class DepartmentNoticeCrawlerService(
         return dtos, curr_pages
 
     async def run_crawling_pipeline(self, **kwargs):
+
+        if type(self.notice_repo) is not NoticeRepository:
+            raise ValueError
+
         department = kwargs.get("department")
         if not department:
             raise ValueError("'department' must be provided")
@@ -364,9 +374,24 @@ class DepartmentNoticeCrawlerService(
                 base_url=base_url,
                 is_important=True,
             )
+
+            common_urls = await self.notice_crawler.scrape_important_urls_async(url=url)
+            affected = self.notice_repo.delete_all(urls=common_urls)
+
+            logger(f"[{department}] {affected} rows deleted (important notice)")
+
+            common_dtos, _ = await self.run_crawling_batch(
+                urls=common_urls,
+                department=department,
+                category=category,
+                base_url=base_url,
+                is_important=True,
+            )
+
             logger("Done.")
 
             dtos += important_dtos
+            dtos += common_dtos
 
         return dtos
 
@@ -394,8 +419,6 @@ class DepartmentNoticeCrawlerService(
 
         with transaction():
             semester_models = self.semester_repo.search_semester_by_dtos(semesters)
-
-            assert isinstance(semester_models, list)
 
         affected = 0
         for semester_model in semester_models:

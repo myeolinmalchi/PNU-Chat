@@ -1,15 +1,30 @@
 """기계공학부 공지사항 크롤러"""
 
-from typing import List
+import asyncio
+from datetime import date, datetime
+from typing import List, Optional
 
 from bs4 import BeautifulSoup
-from markdownify import markdownify as md
+from tqdm import tqdm
+from urllib3.util import parse_url
 
+from db.models.calendar import SemesterTypeEnum
+from db.models.notice import NoticeModel
+from db.repositories.base import transaction
+from db.repositories.notice import NoticeRepository
+from services.base.crawler import preprocess, scrape
+from services.base.crawler.crawler import ParseHTMLException
+from services.base.types.calendar import DateRangeType, SemesterType
 from services.notice import NoticeDTO
 
 import re
 
-from services.notice.crawler.base import BaseNoticeCrawler
+from services.notice.base import BaseDepartmentNoticeService
+from services.notice.crawler.base import BaseNoticeCrawler, BaseNoticeCrawlerService
+from services.notice.embedder import NoticeEmbedder
+from config.logger import _logger
+
+logger = _logger(__name__)
 
 URLs = {
     "공지/학부": {
@@ -47,7 +62,8 @@ URLs = {
 }
 
 SELECTORs = {
-    "list": "#contents > div > div > div > div.board-list02 > table > tbody > tr",
+    "list": "#contents > div > div > div > div.board-list02 > table > tbody > tr:not(.notice)",
+    "list_important": "#contents > div > div > div > div.board-list02 > table > tbody > tr.notice",
     "detail": {
         "info": {
             "title": "#contents > div > div > div.board-view > dl:nth-child(1) > dd",
@@ -63,25 +79,118 @@ DOMAIN = "https://me.pusan.ac.kr"
 DEPARTMENT = "기계공학부"
 
 
-class NoticeMECrawler(BaseNoticeCrawler):
+class MENoticeCrawler(BaseNoticeCrawler):
 
-    def scrape_urls(self, **kwargs) -> List[str]:
+    async def scrape_important_urls_async(self, **kwargs) -> List[str]:
         """게시글 url 목록 불러오기"""
         url_key = kwargs.get("url_key")
+
         if not url_key:
             raise ValueError("'url_key' must be contained")
+
         if url_key not in URLs.keys():
             raise ValueError("존재하지 않는 카테고리입니다.")
 
+        session = kwargs.get("session")
+        if not session:
+            raise ValueError("'session' must be provided")
+
         url = f"{DOMAIN}{URLs[url_key]['path']}"
 
-        soup = scrape(url)
-        seq = self._parse_last_seq(soup)
+        seqs = await scrape.scrape_async(
+            url=url,
+            session=session,
+            post_process=self._parse_important_seqs,
+            delay_range=(0, 0),
+        )
 
         path = URLs[url_key]["path"]
         db = URLs[url_key]["db"]
 
-        _urls = [f"{DOMAIN}{path}?db={db}&seq={seq}&page_mode=view" for seq in range(1, seq + 1)]
+        _urls = [f"{DOMAIN}{path}?db={db}&seq={seq}&page_mode=view" for seq in seqs]
+
+        return _urls
+
+    def _parse_important_seqs(self, soup: BeautifulSoup):
+        table_rows = soup.select(SELECTORs["list_important"])
+
+        seqs: List[int] = []
+        for row in table_rows:
+
+            anchor = row.select_one("td > a:first-child")
+            if anchor is None or not anchor.has_attr("href"):
+                continue
+
+            href = str(anchor["href"])
+            seq_str = re.search(r"javascript:goDetail\((.*?)\)", href)
+
+            if not seq_str:
+                continue
+
+            seq = int(seq_str.group(1))
+            seqs.append(seq)
+
+        return seqs
+
+    def _parse_paths_from_table_element(self, table_element, **kwargs):
+        table = table_element.select_one("table")
+
+        if not table:
+            return ParseHTMLException("<table>이 존재하지 않습니다.")
+
+        is_important = kwargs.get("is_important", False)
+        table_rows = table_element.select(SELECTORs['list_important' if is_important else 'list'])
+
+        results = []
+        for row in table_rows:
+            anchor = row.select_one("td._artclTdTitle > a")
+            if anchor is None or not anchor.has_attr("href"):
+                continue
+
+            date = row.select_one("td._artclTdRdate")
+            if not date:
+                continue
+
+            date_str = date.get_text(strip=True)
+            date = datetime.strptime(date_str, "%Y.%m.%d").date()
+
+            href = str(anchor["href"])
+            results.append((href, date))
+
+        return results
+
+    def _validate_detail_path(self, path, **kwargs) -> bool:
+        raise NotImplementedError()
+
+    async def scrape_urls_async(self, **kwargs) -> List[str]:
+        """게시글 url 목록 불러오기"""
+
+        url_key = kwargs.get("url_key")
+        last_id: int = kwargs.get("last_id", 1)
+
+        if not url_key:
+            raise ValueError("'url_key' must be contained")
+
+        if url_key not in URLs.keys():
+            raise ValueError("존재하지 않는 카테고리입니다.")
+
+        session = kwargs.get("session")
+        if not session:
+            raise ValueError("'session' must be provided")
+
+        url = f"{DOMAIN}{URLs[url_key]['path']}"
+
+        # 가장 최신 게시글의 seq
+        seq = await scrape.scrape_async(
+            url=url,
+            session=session,
+            post_process=self._parse_last_seq,
+        )
+
+        path = URLs[url_key]["path"]
+        db = URLs[url_key]["db"]
+
+        _urls = [f"{DOMAIN}{path}?db={db}&seq={seq}&page_mode=view" for seq in range(last_id, seq + 1)]
 
         return _urls
 
@@ -89,8 +198,6 @@ class NoticeMECrawler(BaseNoticeCrawler):
         table_rows = soup.select(SELECTORs["list"])
 
         for row in table_rows:
-            if row.has_attr("class") and row["class"][0] == "notice":
-                continue
 
             anchor = row.select_one("td > a:first-child")
             if anchor is None or not anchor.has_attr("href"):
@@ -105,35 +212,262 @@ class NoticeMECrawler(BaseNoticeCrawler):
 
         raise Exception
 
-    def _parse_detail(self, dto, soup):
+    def _parse_detail(self, soup):
+
         for img in soup.select("img"):
             img.extract()
 
-        elements = {key: soup.select_one(selector) for key, selector in SELECTORs["detail"]["info"].items()}
+        info, img_urls = {}, []
 
-        _info = {
-            key: element.get_text(separator="", strip=True)
-            for key, element in elements.items() if element is not None
-        }
+        for key, selector in SELECTORs["detail"]["info"].itmes():
+            match (key, soup.select(selector)):
+                case (_, []):
+                    return ParseHTMLException("공지사항 상세 정보 파싱에 실패했습니다.")
 
-        if "content" not in _info or "title" not in _info:
-            return None
+                case ("title", [element, *_]):
+                    inner_text = element.get_text(separator=" ", strip=True)
+                    inner_text = preprocess.preprocess_text(inner_text)
+                    info["title"] = inner_text
+
+                case ("content", [element, *_]):
+                    for img in element.select("img"):
+                        src = img.get("src")
+                        if src:
+                            img_urls.append(str(src))
+                        img.extract()
+
+                    info["content"] = str(preprocess.clean_html(element).prettify())
+
+                case (_, [element, *_]):
+                    info[key] = element.get_text(separator=" ", strip=True)
+
+        atts = []
+
+        atts += [{"name": info["title"], "url": url} for url in img_urls]
 
         att_element = soup.select_one(SELECTORs["detail"]["attachments"])
 
-        _attachments = []
         if att_element:
             for a in att_element.select("a"):
                 if not a or not a.has_attr("href"):
                     continue
 
-                name = self._preprocess_text(a.text)
-                path = self._preprocess_text(str(a["href"])),
-                _attachments.append({"name": name, "url": f"{DOMAIN}{path}"})
+                name = a.get_text(strip=True)
+                url = str(a["href"])
+                atts.append({"name": name, "url": f"{DOMAIN}{url}"})
 
-        _info["content"] = self._preprocess_text(md(_info["content"]))
+        return NoticeDTO(**{"info": info, "attachments": atts})
 
-        _info = {**_info, **dto["info"]}
-        _dto = {**dto, "info": _info, "attachments": _attachments}
 
-        return NoticeDTO(**_dto)
+class MENoticeCrawlerService(
+    BaseNoticeCrawlerService[NoticeModel],
+    BaseDepartmentNoticeService,
+):
+
+    def __init__(
+        self,
+        notice_crawler: MENoticeCrawler,
+        notice_embedder: NoticeEmbedder,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.notice_crawler = notice_crawler
+        self.notice_embedder = notice_embedder
+
+    async def run_crawling_batch(
+        self,
+        urls: List[str],
+        department: str,
+        category: str,
+        is_important: bool = False,
+        parse_attachment: bool = False,
+        last_year: Optional[date] = None,
+    ):
+        if type(self.notice_repo) is not NoticeRepository:
+            raise ValueError
+
+        logger("Scrape notices...")
+        notices = await self.notice_crawler.scrape_detail_async(urls)
+        logger("Done.")
+
+        def add_info(notice: NoticeDTO, **kwargs) -> NoticeDTO:
+            for key, value in kwargs.items():
+                notice["info"][key] = value
+
+            notice["attachments"] = [{
+                "name": att["name"],
+                "url": DOMAIN + att["url"] if att["url"].startswith("/") else att["url"]
+            } for att in notice["attachments"]]
+
+            return notice
+
+        notices = list(
+            map(lambda notice: add_info(
+                notice=notice,
+                department=department,
+                category=category,
+            ), notices)
+        )
+
+        if last_year:
+
+            def date_filter(notice: NoticeDTO):
+                notice_date = datetime.strptime(notice["info"]["date"], '%Y-%m-%d').date()
+                return notice_date >= last_year
+
+            notices = list(filter(date_filter, notices))
+
+        curr_pages = 0
+
+        if parse_attachment:
+            logger("Parse attachments...")
+            notices = await self.notice_crawler.parse_documents_async(notices)
+            logger("Done.")
+
+            curr_pages = sum([
+                sum([len(att["content"]) for att in dto["attachments"] if "content" in att]) for dto in notices
+                if "attachments" in dto
+            ])
+
+        logger("Embed notices...")
+        notices = await self.notice_embedder.embed_dtos_async(dtos=notices)
+        logger("Done.")
+
+        notice_models = [self.dto2orm(n, is_important=is_important) for n in notices]
+        notice_models = [n for n in notice_models if n is not None]
+
+        with transaction():
+            logger("Create notices...")
+            notice_models = self.notice_repo.create_all(notice_models)
+            dtos = list(map(self.orm2dto, notice_models))
+            logger("Done.")
+
+        with transaction():
+            logger("Update semester indexes...")
+            urls = [dto["url"] for dto in dtos]
+            self.add_semester_info(urls=urls)
+            logger("Done.")
+
+        return dtos, curr_pages
+
+    async def run_crawling_pipeline(self, **kwargs):
+        department = kwargs.get("department")
+        if not department:
+            raise ValueError("'department' must be provided")
+
+        reset = kwargs.get("reset", False)
+        interval = kwargs.get('interval', 30)
+        rows = kwargs.get('rows', 500)
+        last_year = date(kwargs.get("last_year", 2000), 1, 1)
+
+        if interval > rows:
+            interval = rows
+
+        dtos: List[NoticeDTO] = []
+
+        parse_attachment = kwargs.get("parse_attachment", False)
+
+        for url_key in URLs:
+
+            search_filter = {
+                "departments": [DEPARTMENT],
+                "categories": [url_key],
+            }
+
+            last_id = None
+            if reset:
+                affected = self.notice_repo.delete_all(**search_filter)
+                logger(f"[{department}-{url_key}] {affected} rows deleted.")
+
+            else:
+                last_notice = self.notice_repo.find_last_notice(**search_filter)
+                if last_notice:
+                    last_path = parse_url(last_notice.url).path
+                    if not last_path:
+                        raise ValueError(f"잘못된 url입니다: {last_notice.url}")
+                    last_id = int(last_path.split("/")[4])
+
+            urls = await self.notice_crawler.scrape_urls_async(url_key=url_key, last_id=last_id)
+
+            with tqdm(total=len(urls), desc=f"[{department}-{url_key}]") as pbar:
+                for st in range(0, len(urls), interval):
+                    ed = min(st + interval, len(urls))
+                    pbar.set_postfix({'range': f"{st + 1}-{ed}"})
+
+                    _dtos, _ = await self.run_crawling_batch(
+                        urls=urls[st:ed],
+                        department=department,
+                        category=url_key,
+                        parse_attachment=parse_attachment,
+                        last_year=last_year,
+                    )
+                    dtos += _dtos
+
+                    if len(_dtos) < interval:
+                        break
+
+                    await asyncio.sleep(kwargs.get('delay', 0))
+
+                    pbar.update(len(_dtos))
+
+            logger(f"[{department}-{url_key}] 주요 공지사항 수집중...")
+            important_urls = await self.notice_crawler.scrape_important_urls_async(url_key=url_key)
+            affected = self.notice_repo.delete_all(urls=important_urls)
+            logger(f"[{department}-{url_key}] {affected} rows deleted (important notice)")
+
+            important_dtos, _ = await self.run_crawling_batch(
+                urls=important_urls,
+                department=department,
+                category=url_key,
+                is_important=True,
+            )
+
+            logger("Done.")
+
+            dtos += important_dtos
+
+        return dtos
+
+    def add_semester_info(
+        self,
+        semesters: List[SemesterType] = [],
+        batch_size: int = 500,
+        urls: List[str] = [],
+    ):
+        if type(self.notice_repo) is not NoticeRepository:
+            raise ValueError
+
+        if not semesters:
+            years = [2023, 2024, 2025]
+            types: List[SemesterTypeEnum] = [
+                SemesterTypeEnum.spring_semester,
+                SemesterTypeEnum.summer_vacation,
+                SemesterTypeEnum.fall_semester,
+                SemesterTypeEnum.winter_vacation,
+            ]
+            semesters = [SemesterType(year=year, type_=type_) for year in years for type_ in types]
+
+        if not self.semester_repo:
+            raise ValueError("'semester_repo' not provided")
+
+        with transaction():
+            semester_models = self.semester_repo.search_semester_by_dtos(semesters)
+
+        affected = 0
+        for semester_model in semester_models:
+
+            st, ed = semester_model.st_date, semester_model.ed_date
+            date_range = DateRangeType(st_date=st, ed_date=ed)
+            total_records = self.notice_repo.search_total_records(date_ranges=[date_range], urls=urls)
+
+            from tqdm import tqdm
+            pbar = tqdm(
+                range(0, total_records, batch_size),
+                desc=f"학기 정보 추가({semester_model.year}-{semester_model.type_})",
+            )
+            for offset in pbar:
+                notices = self.notice_repo.update_semester(semester_model, batch_size, offset, urls=urls)
+                affected += len(notices)
+
+        return affected
