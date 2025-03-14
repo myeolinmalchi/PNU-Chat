@@ -47,8 +47,12 @@ class PNUNoticeSearchServiceV1(IPNUNoticeSearchService):
         if not self.calendar_service:
             raise ValueError("'NoticeService.calendar_service' must be provided")
 
-        embed_result = await embed_async(query, session=session, chunking=False)
-        assert not isinstance(embed_result, list)
+        embed_result = await embed_async(
+            query,
+            session=session,
+            chunking=False,
+            html=False,
+        )
 
         semester_ids = []
         with transaction():

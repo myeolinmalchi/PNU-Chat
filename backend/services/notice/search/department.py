@@ -6,6 +6,7 @@ from aiohttp import ClientSession
 from db.repositories.base import transaction
 from db.repositories.notice import NoticeRepository
 from services.base import SemesterType
+from services.base.dto import EmbedResult
 from services.base.embedder import embed_async, rerank_async
 from services.notice import NoticeDTO
 
@@ -19,6 +20,7 @@ class IDepartmentNoticeSearchService(BaseDepartmentNoticeService):
     class _SearchOptions(TypedDict, total=False):
         top_k: NotRequired[int]
         count: NotRequired[int]
+        embeddings: NotRequired[EmbedResult]
         threshold: NotRequired[float]
         lexical_ratio: NotRequired[float]
         semesters: NotRequired[List[SemesterType]]
@@ -48,8 +50,12 @@ class DepartmentNoticeSearchServiceV1(IDepartmentNoticeSearchService):
         if not self.calendar_service:
             raise ValueError("'NoticeService.calendar_service' must be provided")
 
-        embed_result = await embed_async(query, session=session, chunking=False)
-        assert not isinstance(embed_result, list)
+        embed_result = await embed_async(
+            query,
+            session=session,
+            chunking=False,
+            html=False,
+        ) if "embeddings" not in opts else opts["embeddings"]
 
         departments = opts['departments']
         semester_ids = []
@@ -115,8 +121,12 @@ class DepartmentNoticeSearchServiceV2(IDepartmentNoticeSearchService):
         if not self.calendar_service:
             raise ValueError("'NoticeService.calendar_service' must be provided")
 
-        embed_result = await embed_async(query, session=session, chunking=False)
-        assert not isinstance(embed_result, list)
+        embed_result = await embed_async(
+            query,
+            session=session,
+            chunking=False,
+            html=False,
+        ) if "embeddings" not in opts else opts["embeddings"]
 
         departments = opts['departments']
 
@@ -161,7 +171,6 @@ class DepartmentNoticeSearchServiceV2(IDepartmentNoticeSearchService):
                     dto = ranked_dict[notice_id]
 
                 if not attachment_model:
-                    #assert isinstance(dto["info"]["content"], list)
                     dto["info"]["content"] = chunk.chunk_content
 
                 else:
