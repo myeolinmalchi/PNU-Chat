@@ -1,10 +1,9 @@
 from dependency_injector import containers, providers
 from openai import AsyncOpenAI
 
-from db.models.pnu_notice import PNUNoticeContainer
 from services.app import AppSearchService, ApplicationService
 
-from .notice import NoticeContainer
+from .notice import NoticeContainer, PNUNoticeContainer
 from .calendar import CalendarContainer
 from .support import SupportContainer
 from .professor import ProfessorContainer
