@@ -523,6 +523,7 @@ class MENoticeCrawlerService(
                 department=DEPARTMENT,
                 category=url_key,
                 is_important=True,
+                parse_attachment=parse_attachment
             )
 
             logger("Done.")

@@ -2,7 +2,7 @@ from abc import abstractmethod
 import asyncio
 from itertools import chain
 import json
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from aiohttp import ClientSession
 from openai.types.chat import ChatCompletionMessageParam
@@ -80,13 +80,25 @@ class P0AssistantServiceV1(BaseAssistantService):
             "---\n"
         )
 
+        usage = {
+            "input": 0,
+            "output": 0,
+            "input_cached": 0,
+        }
+
+        def add_usage(_usage: Dict[str, int]):
+            usage["input"] += _usage["input"]
+            usage["input_cached"] += _usage["input_cached"]
+            usage["output"] += _usage["output"]
+
         logger("before extract sub questions...")
-        p0_1_response = await self.p0_1.inference(base_info + question, history)
+        p0_1_response, usage1 = await self.p0_1.inference(base_info + question, history)
 
         if not p0_1_response:
             raise ValueError
 
         sub_questions = p0_1_response.sub_questions
+        add_usage(usage1)
 
         logger("embed sub questions...")
         sub_question_embeddings = await embed_async(
@@ -99,7 +111,11 @@ class P0AssistantServiceV1(BaseAssistantService):
         logger("choose search tools...")
         p0_2_futures = [self.p0_2.inference(base_info + q, history) for q in sub_questions]
         p0_2_responses = await asyncio.gather(*p0_2_futures)
-        tools = [res.tools for res in p0_2_responses if res is not None]
+        tools = [res.tools for res, _ in p0_2_responses if res is not None]
+        usage2 = [_usage for res, _usage in p0_2_responses if res is not None]
+
+        for _usage in usage2:
+            add_usage(_usage)
 
         #logger("choose search parameters...")
         #p0_3_futures = [self.p0_3.inference(base_info + q) for q in sub_questions]
@@ -134,7 +150,11 @@ class P0AssistantServiceV1(BaseAssistantService):
         ]
 
         p0_4_responses = await asyncio.gather(*p0_4_futures)
-        documents = [res.documents for res in p0_4_responses if res is not None]
+        documents = [res.documents for res, _ in p0_4_responses if res is not None]
+        usage4 = [_usage for res, _usage in p0_4_responses if res is not None]
+
+        for _usage in usage4:
+            add_usage(_usage)
 
         if not documents:
             raise ValueError
@@ -145,14 +165,18 @@ class P0AssistantServiceV1(BaseAssistantService):
         document_strs = json.dumps(flattened_documents, ensure_ascii=False)
 
         logger("create final answer...")
-        p0_response = await self.p0.inference(question, history, context=document_strs)
+        p0_response, usage5 = await self.p0.inference(question, history, context=document_strs)
 
         if not p0_response:
             raise ValueError
+
+        add_usage(usage5)
 
         url2md = lambda url: f"[FILE]({url})" if "download" in url else f"[URL]({url})"
         final_answer = "\n\n".join([
             answer.paragraph + " " + "".join(map(url2md, answer.urls)) for answer in p0_response.answers
         ])
+
+        print(usage5)
 
         return final_answer

@@ -142,7 +142,7 @@ class NoticeCrawler(crawler.BaseNoticeCrawler):
 
         _url = parse_url(url)
 
-        last_year = date(kwargs.get("last_year", 2000), 1, 1)
+        last_year = kwargs.get("last_year", date(2000, 1, 1))
 
         def filter(path: str, _date: date):
             return self._validate_detail_path(path, last_id=last_id) and _date > last_year
@@ -311,7 +311,8 @@ class DepartmentNoticeCrawlerService(
             interval = rows
 
         dtos: List[NoticeDTO] = []
-        last_year = kwargs.get("last_year", 2000)
+        st_date = datetime.strptime(kwargs.get("st_date", "2000-01-01"), "%Y-%m-%d").date()
+        ed_date = datetime.strptime(kwargs.get("ed_date", "2100-12-31"), "%Y-%m-%d").date()
 
         parse_attachment = kwargs.get("parse_attachment", False)
 
@@ -341,7 +342,7 @@ class DepartmentNoticeCrawlerService(
                 url=url,
                 rows=rows,
                 last_id=last_id,
-                last_year=last_year,
+                last_year=st_date,
             )
 
             with tqdm(total=len(urls), desc=f"[{department}-{category}]") as pbar:
@@ -373,6 +374,7 @@ class DepartmentNoticeCrawlerService(
                 category=category,
                 base_url=base_url,
                 is_important=True,
+                parse_attachment=parse_attachment,
             )
 
             common_urls = await self.notice_crawler.scrape_important_urls_async(url=url)
@@ -386,6 +388,7 @@ class DepartmentNoticeCrawlerService(
                 category=category,
                 base_url=base_url,
                 is_important=True,
+                parse_attachment=parse_attachment,
             )
 
             logger("Done.")
