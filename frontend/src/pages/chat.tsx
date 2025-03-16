@@ -29,8 +29,8 @@ const Chat = () => {
         {prevChat?.question != null && (
           <>
             <ChatRequest content={prevChat.question} />
-            {prevChat.error == true ? (
-              <ChatResponse content={''} error />
+            {prevChat.error ? (
+              <ChatResponse content={prevChat.error} error />
             ) : (
               <ChatResponseHeader pending />
             )}

@@ -43,7 +43,7 @@ const ChatResponse = ({ content, error }: ChatResponseProps) => {
       <ChatResponseHeader pending={false} />
       <span className='w-full max-w-full text-chat-response text-[16px] font-[500] bg-none rounded-xl break-words break-all prose'>
         {error == true ? (
-          <>답변을 불러올 수 없습니다. 잠시 후 다시 시도하세요.</>
+          <>{content}</>
         ) : (
           <ReactMarkdown
             components={{

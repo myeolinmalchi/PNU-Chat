@@ -44,7 +44,7 @@ type ChatResponseType = {
 
 type ChatContextType = {
   uuid: string;
-  error?: boolean;
+  error?: string;
   messages: ChatMessageType[];
   contexts: SearchHistoryType[];
   question: string | null;
