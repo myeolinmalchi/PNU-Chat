@@ -5,10 +5,15 @@ from openai import AsyncOpenAI
 from app.schemas.chat import ChatRequestV2, ChatResponseV2
 from containers import AppContainer
 
+import uuid
+import json
+
 from services.app.assistant import BaseAssistantService
 from config.logger import _logger
 
 from dotenv import load_dotenv
+
+import sqlite3
 
 load_dotenv()
 
@@ -59,7 +64,15 @@ async def chat(
         "content": answer,
     }]
 
+    _uuid = req.uuid if req.uuid else str(uuid.uuid4())
+
+    con = sqlite3.connect("chats.db")
+    cur = con.cursor()
+    message_str = json.dumps(messages)
+    cur.execute(f"INSERT OR REPLACE INTO chats values (?, ?)", (_uuid, message_str))
+
     return {
+        "uuid": _uuid,
         "title": title,
         "answer": answer,
         "question": req.question,
