@@ -26,6 +26,7 @@ class ChatRequest(BaseModel):
 
 
 class ChatRequestV2(BaseModel):
+    uuid: Optional[str] = None
     question: str
     university: str
     department: str
@@ -51,6 +52,7 @@ class ChatResponse(BaseModel):
 
 
 class ChatResponseV2(BaseModel):
+    uuid: str
     title: Optional[str] = None
     answer: str
     question: str
