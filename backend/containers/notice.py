@@ -28,7 +28,7 @@ class PNUNoticeContainer(containers.DeclarativeContainer):
     notice_repo = providers.Singleton(repo.PNUNoticeRepository)
 
     notice_service = providers.Factory(
-        notice.DepartmentNoticeSearchServiceV1,
+        notice.PNUNoticeSearchServiceV1,
         notice_repo=notice_repo,
         calendar_service=calendar_service,
         semester_repo=semester_repo,

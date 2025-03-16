@@ -59,7 +59,7 @@ class BaseNoticeCrawler(BaseCrawler[NoticeDTO]):
         self,
         table_element: Tag,
         **kwargs,
-    ) -> ParseHTMLException | List[Tuple[str, date, bool]]:
+    ) -> ParseHTMLException | List[Tuple[str, date]]:
         """table 태그에서 모든 게시글 경로 추출"""
         pass
 

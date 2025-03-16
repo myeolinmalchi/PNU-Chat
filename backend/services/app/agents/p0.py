@@ -155,7 +155,9 @@ class P0_4(P0_Base[P0_4_ResponseFormat]):
             "\n"
             "parameters:\n"
             "`urls`: 참고한 웹문서 또는 첨부파일의 url 주소입니다. url이 없는 문서의 경우 빈 배열로 출력합니다.\n"
-            "`extracted`: 참고한 웹문서 또는 첨부파일에서 질문과 연관된 핵심 정보를 정리합니다."
+            "`extracted`: \n"
+            "참고한 웹문서 또는 첨부파일에서 질문과 연관된 핵심 정보를 정리합니다.\n"
+            "각각의 문서들은 출처가 상이하며, 내용이 일관되지 않을 수 있습니다. 이점에 유의하세요."
         )
 
         super().__init__(
@@ -179,13 +181,14 @@ class P0(P0_Base[P0_ResponseFormat]):
             "  - 답변의 일부로, 문단 단위로 작성하세요."
             "  - 마크다운 포맷으로 작성해야하며, 각 문단의 내용이 중복되어서는 안됩니다.\n"
             "  - 각 문단의 내용은 일관되어야 하며, 모순이 있어서는 안됩니다.\n"
-            "`urls`: 문단과 직접적으로 연관이 있는 문서의 url 목록입니다.\n"
+            "`urls`: 문단과 직접적으로 연관이 있는 출처의 url 목록입니다.\n"
             "\n"
             "instructions:\n"
             "context에 포함된 정보만 참고하여 답변합니다.\n"
             "context에 질문과 관련된 정보가 부족하다면 사용자에게 이를 알립니다.\n"
             "마크다운 문서 구조를 유지한채로 문단을 최대한 잘게 쪼개세요."
             "질문에 대해 맥락을 벗어나지 않으면서, 명료하게 답변합니다.\n"
+            "Context의 각 내용은 출처가 상이하며, 내용이 일관되지 않을 수 있습니다. 이점에 유의하세요."
         )
 
         super().__init__(
@@ -195,7 +198,7 @@ class P0(P0_Base[P0_ResponseFormat]):
             response_format=P0_ResponseFormat,
             model=model,
             store=True,
-                                               #repeat_penalty=0.1
+            repeat_penalty=0.05
         )
 
     """

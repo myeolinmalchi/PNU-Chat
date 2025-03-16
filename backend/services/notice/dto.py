@@ -1,4 +1,4 @@
-from typing import NotRequired, Optional, Required, TypedDict, List
+from typing import NotRequired, Required, TypedDict, List
 
 from services.base import EmbedResult
 from services.base.dto import BaseDTO

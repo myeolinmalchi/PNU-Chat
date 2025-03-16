@@ -68,6 +68,7 @@ class AppSearchService(base.BaseService):
             departments=departments,
             semesters=semesters,
         )
+        logger(f"count of notices: {len(notices)}")
         return [self.notice_service.dto2context(notice) for notice in notices]
 
     async def search_pnu_notices(
@@ -81,6 +82,9 @@ class AppSearchService(base.BaseService):
             query,
             semesters=semesters,
         )
+
+        logger(f"count of pnu notices: {len(notices)}")
+
         return [self.notice_service.dto2context(notice) for notice in notices]
 
     def search_calendars(self, semesters: List[base.SemesterType], **_):

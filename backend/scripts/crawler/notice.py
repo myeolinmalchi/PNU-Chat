@@ -44,6 +44,8 @@ def init_args():
     parser.add_argument("-r", '--reset', dest="reset", action=argparse.BooleanOptionalAction)
     parser.add_argument("-rw", '--rows', dest="rows", action="store", default="500")
     parser.add_argument("-y", '--last-year', dest="last_year", action="store", default="2000")
+    parser.add_argument("-st", '--st-year', dest="st_year", action="store", default="2000")
+    parser.add_argument("-ed", '--ed-year', dest="ed_year", action="store", default="2025")
     parser.add_argument("-pa", '--parse-attachment', dest="parse_attachment", action=argparse.BooleanOptionalAction)
 
     args = parser.parse_args()
@@ -54,7 +56,8 @@ def init_args():
         "reset": bool(args.reset),
         "department": str(args.department),
         "rows": int(args.rows),
-        "last_year": int(args.last_year),
+        "st_year": int(args.st_year),
+        "ed_year": int(args.ed_year),
         "parse_attachment": bool(args.parse_attachment),
     }
 
@@ -65,7 +68,7 @@ def init_args():
 @transaction()
 async def main(
     notice_service: DepartmentNoticeCrawlerService = Provide[NoticeCrawlerContainer.notice_service],
-    me_notice_service: MENoticeCrawlerService = Provide[NoticeCrawlerContainer.me_notice_crawler],
+    me_notice_service: MENoticeCrawlerService = Provide[NoticeCrawlerContainer.me_notice_service],
 ):
 
     kwargs = init_args()
@@ -80,7 +83,8 @@ async def main(
 
         reset = kwargs.get("reset", False)
         rows = kwargs.get("rows", 500)
-        last_year = kwargs.get("last_year")
+        st_year = kwargs.get("st_year")
+        ed_year = kwargs.get("ed_year")
         parse_attachment = kwargs.get("parse_attachment")
 
         failed_departments: Dict = {}
@@ -92,7 +96,8 @@ async def main(
                         delay=kwargs.get('delay'),
                         reset=reset,
                         rows=rows,
-                        last_year=last_year,
+                        st_date=f"{st_year}-01-01" if st_year else None,
+                        ed_date=f"{ed_year}-12-31" if ed_year else None,
                         parse_attachment=parse_attachment
                     )
                 else:
@@ -103,7 +108,8 @@ async def main(
                         department=_dep,
                         reset=reset,
                         rows=rows,
-                        last_year=last_year,
+                        st_date=f"{st_year}-01-01" if st_year else None,
+                        ed_date=f"{ed_year}-12-31" if ed_year else None,
                         parse_attachment=parse_attachment
                     )
                     ed = time.time()
@@ -111,7 +117,7 @@ async def main(
 
             except Exception as e:
                 failed_departments[_dep] = e
-                logger(f"[{_dep}] 일시적인 오류가 발생했습니다.", logging.ERROR)
+                logger(f"[{_dep}] 일시적인 오류가 발생했습니다. {e}", logging.ERROR)
             continue
 
     except Exception as e:

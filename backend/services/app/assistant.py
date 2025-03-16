@@ -143,7 +143,6 @@ class P0AssistantServiceV1(BaseAssistantService):
         flattened_documents = [doc.model_dump() for doc in flattened_documents]
 
         document_strs = json.dumps(flattened_documents, ensure_ascii=False)
-        logger(f"docs: {document_strs}")
 
         logger("create final answer...")
         p0_response = await self.p0.inference(question, history, context=document_strs)

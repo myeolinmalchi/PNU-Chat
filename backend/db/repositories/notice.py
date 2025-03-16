@@ -322,13 +322,16 @@ class NoticeRepository(
         count = self.session.query(NoticeModel).filter(filter).count()
         return count
 
-    # TODO: 기계공학부 로직 분리 필요
     def find_last_notice(self, **kwargs):
         filter = self._get_filters(**kwargs)
 
-        notice_id = cast(func.split_part(NoticeModel.url, '/', 7), Integer).label("notice_id")
+        if "is_me" in kwargs:
+            notice_seq = cast(func.substring(NoticeModel.url, r'seq=(\d+)'), Integer)
 
-        last_notice = self.session.query(NoticeModel, notice_id).where(filter).order_by(desc(notice_id)).first()
+        else:
+            notice_seq = cast(func.split_part(NoticeModel.url, '/', 7), Integer).label("notice_id")
+
+        last_notice = self.session.query(NoticeModel, notice_seq).where(filter).order_by(desc(notice_seq)).first()
 
         return last_notice[0] if last_notice else None
 

@@ -39,12 +39,12 @@ async def scrape_async(
     delay_range: Tuple[float, float] = (0, 1)
 ) -> T | List[T]:
 
-    @retry_async(delay=retry_delay, times=30)
+    @retry_async(delay=retry_delay, times=25)
     async def help(_url: str) -> Any:
         await asyncio.sleep(random.uniform(*delay_range))
         async with session.get(_url) as res:
             if res.ok:
-                html = await res.text(encoding="utf-8", errors="ignore")
+                html = await res.text(errors="ignore")
                 soup = BeautifulSoup(html, "html5lib")
                 result = post_process(soup) if post_process else soup
                 return result

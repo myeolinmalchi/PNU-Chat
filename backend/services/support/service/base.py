@@ -167,8 +167,12 @@ class SupportServiceV1(BaseSupportSearchService):
         if not session:
             raise ValueError("'session' must be provided")
 
-        embed_result = await embed_async(query, session=session, chunking=False)
-        assert not isinstance(embed_result, list)
+        embed_result = await embed_async(
+            query,
+            session=session,
+            chunking=False,
+            html=False,
+        )
 
         chunks = self.support_repo.search_supports_hybrid_v2(
             dense_vector=embed_result["dense"],

@@ -60,17 +60,17 @@ class DepartmentNoticeSearchServiceV1(IDepartmentNoticeSearchService):
         departments = opts['departments']
         semester_ids = []
         with transaction():
-            if "semesters" not in opts:
-                now = datetime.now()
-                semesters = self.calendar_service.get_semester(now.year, now.month, now.day)
-                semester_ids = [s["semester_id"] for s in semesters if "semester_id" in s]
-
-            else:
+            if "semesters" in opts and len(opts["semesters"]) > 0:
                 semesters = opts["semesters"]
                 semester_models = self.semester_repo.search_semester_by_dtos(semesters)
                 related_semester_models = [self.calendar_service.get_related_semester(orm) for orm in semester_models]
                 related_semester_models = [orm for orm in related_semester_models if orm]
                 semester_ids = [s.id for s in [*semester_models, *related_semester_models]]
+
+            else:
+                now = datetime.now()
+                semesters = self.calendar_service.get_semester(now.year, now.month, now.day)
+                semester_ids = [s["semester_id"] for s in semesters if "semester_id" in s]
 
         with transaction():
             chunks = self.notice_repo.search_chunks_hybrid(
