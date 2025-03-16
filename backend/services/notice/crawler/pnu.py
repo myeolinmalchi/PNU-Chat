@@ -263,7 +263,7 @@ class PNUNoticeCrawlerSerivce(
         self,
         urls: List[str],
         is_important: bool = False,
-        parse_attachment: bool = False,
+        parse_attachment: bool = True,
     ) -> Tuple[List[NoticeDTO], int]:
 
         if type(self.notice_repo) is not PNUNoticeRepository:
