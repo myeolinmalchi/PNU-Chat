@@ -9,7 +9,7 @@ from .schemas import (
     P0_ResponseFormat,
 )
 
-from typing import Generic, List
+from typing import Dict, Generic, List, Optional, Tuple
 
 import openai
 from openai.lib import ResponseFormatT
@@ -51,7 +51,7 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
         question: str,
         history: List[ChatCompletionMessageParam] = [],
         context: str | None = None,
-    ) -> ResponseFormatT | None:
+    ) -> Tuple[Optional[ResponseFormatT], Dict[str, int]]:
         context_prompt = ("\n\n---\n\n"
                           "context:\n"
                           f"{context}") if context is not None else ""
@@ -68,7 +68,14 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
 
         parsed = completion.choices[0].message.parsed
 
-        return parsed
+        usage = {}
+        if completion.usage:
+            usage["input"] = completion.usage.prompt_tokens
+            usage["output"] = completion.usage.completion_tokens
+            if completion.usage.prompt_tokens_details:
+                usage["input_cached"] = completion.usage.prompt_tokens_details.cached_tokens
+
+        return parsed, usage
 
 
 class P0_1(P0_Base[P0_1_ResponseFormat]):
@@ -76,11 +83,11 @@ class P0_1(P0_Base[P0_1_ResponseFormat]):
     def __init__(self, client, model, temperature):
         system_prompt = (
             "당신은 부산대학교 AI 어시스턴트 p0의 조수 역할을 하는 Agent p0_1입니다.\n"
-            "당신의 역할은 주어진 사용자의 질문을 토대로 두 개 이상의 하위 질문을 생성하는 것입니다.\n"
+            "당신의 역할은 주어진 사용자의 질문을 토대로 최대 두 개의 하위 질문을 생성하는 것입니다.\n"
             "\n"
             "instructions:\n"
             "하위 질문은 원본 질문을 답변하기 위해 먼저 해결해야 하는 내용을 포함합니다.\n"
-            "중복되지 않아야 하며, 최대 세 개의 질문을 생성합니다.\n"
+            "중복되지 않아야 하며, 최대 두 개의 질문을 생성합니다.\n"
             "상위어와 유의어를 활용하여 보다 포괄적이고 일반적인 질문을 생성하세요.\n"
             "질문에 최대한 많은 정보를 포함하세요."
         )
@@ -102,9 +109,8 @@ class P0_2(P0_Base[P0_2_ResponseFormat]):
             "당신의 역할은 사용자의 질문에 답하기 위해 적절한 검색 도구를 선택하는 것입니다.\n"
             "\n"
             "instructions:\n"
-            "최대한 다양한 도구를 선택하세요.\n"
-            "최대한 다양한 도구를 선택하세요.\n"
-            "최대한 다양한 도구를 선택하세요.\n"
+            "도구는 최대 세 개까지 선택 가능합니다.\n"
+            "도구는 최대 세 개까지 선택 가능합니다.\n"
             "\n"
             "tools:\n"
             "- `search_supports`: 학생지원시스템에서 학교 생활과 관련된 일반적인 정보를 검색합니다.\n"
@@ -181,6 +187,7 @@ class P0(P0_Base[P0_ResponseFormat]):
             "  - 답변의 일부로, 문단 단위로 작성하세요."
             "  - 마크다운 포맷으로 작성해야하며, 각 문단의 내용이 중복되어서는 안됩니다.\n"
             "  - 각 문단의 내용은 일관되어야 하며, 모순이 있어서는 안됩니다.\n"
+            "  - 질문과 관련되지 않은 추가 정보는 임의로 작성하지 마세요.\n"
             "`urls`: 문단과 직접적으로 연관이 있는 출처의 url 목록입니다.\n"
             "\n"
             "instructions:\n"
@@ -198,7 +205,6 @@ class P0(P0_Base[P0_ResponseFormat]):
             response_format=P0_ResponseFormat,
             model=model,
             store=True,
-            repeat_penalty=0.05
         )
 
     """
