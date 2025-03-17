@@ -68,8 +68,12 @@ async def chat(
 
     con = sqlite3.connect("chats.db")
     cur = con.cursor()
-    message_str = json.dumps(messages)
+
+    message_str = json.dumps(messages, ensure_ascii=False)
     cur.execute(f"INSERT OR REPLACE INTO chats values (?, ?)", (_uuid, message_str))
+
+    con.commit()
+    con.close()
 
     return {
         "uuid": _uuid,
