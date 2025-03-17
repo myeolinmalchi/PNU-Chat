@@ -218,6 +218,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       set((prev) => ({ ...prev, prevChat: newChat }));
 
       const body: ChatRequestType = {
+        uuid: newChat.uuid,
         question,
         model: 'gpt-4o-mini',
         messages: newChat.messages,

@@ -27,6 +27,7 @@ type TokenUsageType = {
 };
 
 type ChatRequestType = UserInfoType & {
+  uuid?: string;
   question: string;
   model?: 'gpt-4o' | 'o3-mini' | 'gpt-4o-mini';
   messages: ChatMessageType[];
