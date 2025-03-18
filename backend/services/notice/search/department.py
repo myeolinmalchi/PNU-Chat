@@ -155,7 +155,7 @@ class DepartmentNoticeSearchServiceV2(IDepartmentNoticeSearchService):
             texts = [notice.chunk_content for notice in pre_ranked]
             ranks = await rerank_async(query, texts, session=session)
             ranks = sorted(ranks, key=lambda res: res["score"], reverse=True)[:opts.get("count", 5)]
-            ranks = filter(lambda rank: rank["score"] >= opts.get("threshold", 0.5), ranks)
+            ranks = filter(lambda rank: rank["score"] >= opts.get("threshold", 0.3), ranks)
 
             ranked_dict: Dict[int, NoticeDTO] = {}
 
