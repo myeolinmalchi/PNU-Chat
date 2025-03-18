@@ -11,7 +11,7 @@ class SupportContainer(containers.DeclarativeContainer):
     support_crawler = providers.Singleton(support.SupportCrawler)
 
     support_service = providers.Factory(
-        support.SupportServiceV1,
+        support.SupportServiceV2,
         support_repo=support_repo,
         support_embedder=support_embedder,
         support_crawler=support_crawler
