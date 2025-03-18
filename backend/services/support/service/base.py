@@ -172,7 +172,7 @@ class SupportServiceV1(BaseSupportSearchService):
             session=session,
             chunking=False,
             html=False,
-        )
+        ) if "embeddings" not in opts else opts["embeddings"]
 
         chunks = self.support_repo.search_supports_hybrid_v2(
             dense_vector=embed_result["dense"],
@@ -217,8 +217,12 @@ class SupportServiceV2(BaseSupportSearchService):
         if not session:
             raise ValueError("'session' must be provided")
 
-        embed_result = await embed_async(query, session=session, chunking=False)
-        assert not isinstance(embed_result, list)
+        embed_result = await embed_async(
+            query,
+            session=session,
+            chunking=False,
+            html=False,
+        ) if "embeddings" not in opts else opts["embeddings"]
 
         pre_ranked = self.support_repo.search_supports_hybrid_v2(
             dense_vector=embed_result["dense"],
@@ -230,6 +234,7 @@ class SupportServiceV2(BaseSupportSearchService):
         texts = [support.chunk_content for support in pre_ranked]
         ranks = await rerank_async(query, texts, session=session)
         ranks = sorted(ranks, key=lambda res: res["score"], reverse=True)[:opts.get("count", 5)]
+        ranks = filter(lambda rank: rank["score"] >= opts.get("threshold", 0.3), ranks)
 
         ranked_dict: Dict[int, SupportDTO] = {}
 
