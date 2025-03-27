@@ -109,7 +109,7 @@ class MENoticeCrawler(BaseNoticeCrawler):
         path = URLs[url_key]["path"]
         db = URLs[url_key]["db"]
 
-        _urls = [f"{DOMAIN}{path}?db={db}&seq={seq}&page_mode=view" for seq in seqs]
+        _urls = [f"{DOMAIN}{path}?seq={seq}&db={db}&page_mode=view" for seq in seqs]
 
         return _urls
 
