@@ -17,11 +17,12 @@ class NoticeSearchFilterType(TypedDict, total=False):
     year: int
     departments: List[str]
     date_ranges: List[DateRangeType]
-    categories: List[str]
+    categories: List[str | None]
     semester_ids: NotRequired[List[int]]
     with_important: NotRequired[bool]
     only_important: NotRequired[bool]
     urls: NotRequired[List[str]]
+    exclude_urls: NotRequired[List[str]]
 
 
 class PNUNoticeSearchFilterType(TypedDict, total=False):
@@ -31,6 +32,7 @@ class PNUNoticeSearchFilterType(TypedDict, total=False):
     with_important: NotRequired[bool]
     only_important: NotRequired[bool]
     urls: NotRequired[List[str]]
+    exclude_urls: NotRequired[List[str]]
 
 
 class INoticeRepository(
@@ -118,6 +120,9 @@ class PNUNoticeRepository(
 
         if "urls" in kwargs:
             filters.append(PNUNoticeModel.url.in_(kwargs["urls"]))
+
+        if "exclude_urls" in kwargs:
+            filters.append(PNUNoticeModel.url.notin_(kwargs["exclude_urls"]))
 
         if "year" in kwargs:
             year = kwargs["year"]
@@ -247,11 +252,20 @@ class NoticeRepository(
         affected = self.session.query(NoticeModel).filter(filter).delete()
         return affected
 
+    def get_all(self, **kwargs: Unpack[NoticeSearchFilterType]):
+        filter = self._get_filters(**kwargs)
+        notices = self.session.query(NoticeModel).filter(filter).all()
+
+        return notices
+
     def _get_filters(self, **kwargs: Unpack[NoticeSearchFilterType]):
         filters = []
 
         if "urls" in kwargs:
             filters.append(NoticeModel.url.in_(kwargs["urls"]))
+
+        if "exclude_urls" in kwargs:
+            filters.append(NoticeModel.url.notin_(kwargs["exclude_urls"]))
 
         if "year" in kwargs:
             year = kwargs["year"]
