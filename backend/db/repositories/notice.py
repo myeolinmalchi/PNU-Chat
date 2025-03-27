@@ -101,11 +101,10 @@ class PNUNoticeRepository(
 
         return last_notice[0] if last_notice else None
 
-    def delete_all(self, urls: List[str] = []):
-        if urls:
-            affected = self.session.query(PNUNoticeModel).filter(NoticeModel.url.in_(urls)).delete()
-        else:
-            affected = self.session.query(PNUNoticeModel).delete()
+    def delete_all(self, **opts: Unpack[PNUNoticeSearchFilterType]):
+        filter = self._get_filters(**opts)
+        affected = self.session.query(PNUNoticeModel).filter(filter).delete()
+
         return affected
 
     def _get_filters(self, **kwargs: Unpack[PNUNoticeSearchFilterType]):
