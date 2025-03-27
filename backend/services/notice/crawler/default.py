@@ -317,9 +317,38 @@ class DepartmentNoticeCrawlerService(
 
         parse_attachment = kwargs.get("parse_attachment", False)
 
-        for category, url in url_dict.items():
+        common_urls = []
+
+        for idx, (category, url) in enumerate(url_dict.items()):
             url_instance = urlparse(url)
             base_url = f"{url_instance.scheme}://{url_instance.netloc}"
+
+            if idx == 0:
+                # 공통 공지 스크랩
+                logger(f"[{department}] 공통 공지사항 수집중...")
+                common_urls = await self.notice_crawler.scrape_important_urls_async(url=url, is_common=True)
+                common_notices = self.notice_repo.get_all(urls=common_urls)
+                prev_common_urls = [notice.url for notice in common_notices]
+                new_common_urls = [url for url in common_urls if url not in prev_common_urls]
+                affected = self.notice_repo.delete_all(
+                    exclude_urls=common_urls,
+                    only_important=True,
+                    categories=[None],
+                    departments=[department],
+                )
+
+                logger(f"[{department}] {affected} rows deleted (important notice)")
+
+                common_dtos, _ = await self.run_crawling_batch(
+                    urls=new_common_urls,
+                    department=department,
+                    category=None,
+                    base_url=base_url,
+                    is_important=True,
+                    parse_attachment=parse_attachment,
+                )
+                dtos += common_dtos
+                logger("Done.")
 
             search_filter = {
                 "departments": [department],
@@ -339,12 +368,40 @@ class DepartmentNoticeCrawlerService(
                         raise ValueError(f"잘못된 url입니다: {last_notice.url}")
                     last_id = int(last_path.split("/")[4])
 
+            # 주요 공지 스크랩
+            logger(f"[{department}-{category}] 주요 공지사항 수집중...")
+            important_urls = await self.notice_crawler.scrape_important_urls_async(url=url)
+            important_notices = self.notice_repo.get_all(urls=important_urls)
+            prev_important_urls = [notice.url for notice in important_notices]
+            new_important_urls = [url for url in important_urls if url not in prev_important_urls]
+            affected = self.notice_repo.delete_all(
+                exclude_urls=important_urls,
+                only_important=True,
+                categories=[category],
+                departments=[department],
+            )
+            logger(f"[{department}-{category}] {affected} rows deleted (important notice)")
+
+            important_dtos, _ = await self.run_crawling_batch(
+                urls=new_important_urls,
+                department=department,
+                category=category,
+                base_url=base_url,
+                is_important=True,
+                parse_attachment=parse_attachment,
+            )
+
+            # 일반 공지 스크랩
+            exclude_urls = [*important_urls, *common_urls]
+
             urls = await self.notice_crawler.scrape_urls_async(
                 url=url,
                 rows=rows,
                 last_id=last_id,
                 last_year=st_date,
             )
+
+            urls = [url for url in urls if url not in exclude_urls]
 
             with tqdm(total=len(urls), desc=f"[{department}-{category}]") as pbar:
                 for st in range(0, len(urls), interval):
@@ -364,38 +421,9 @@ class DepartmentNoticeCrawlerService(
 
                     pbar.update(len(_dtos))
 
-            logger(f"[{department}-{category}] 주요 공지사항 수집중...")
-            important_urls = await self.notice_crawler.scrape_important_urls_async(url=url)
-            affected = self.notice_repo.delete_all(urls=important_urls)
-            logger(f"[{department}-{category}] {affected} rows deleted (important notice)")
-
-            important_dtos, _ = await self.run_crawling_batch(
-                urls=important_urls,
-                department=department,
-                category=category,
-                base_url=base_url,
-                is_important=True,
-                parse_attachment=parse_attachment,
-            )
-
-            common_urls = await self.notice_crawler.scrape_important_urls_async(url=url)
-            affected = self.notice_repo.delete_all(urls=common_urls)
-
-            logger(f"[{department}] {affected} rows deleted (important notice)")
-
-            common_dtos, _ = await self.run_crawling_batch(
-                urls=common_urls,
-                department=department,
-                category=category,
-                base_url=base_url,
-                is_important=True,
-                parse_attachment=parse_attachment,
-            )
-
             logger("Done.")
 
             dtos += important_dtos
-            dtos += common_dtos
 
         return dtos
 
