@@ -314,8 +314,7 @@
           "urls": {
             "base": "https://chemedu.pusan.ac.kr",
             "notices": {
-              "공지": "/chemedu/20618/subview.do",
-              "취업": "/chemedu/20623/subview.do"
+              "공지": "/chemedu/20618/subview.do"
             },
             "professors": [
               "/chemedu/20607/subview.do"
@@ -406,7 +405,6 @@
           "urls": {
             "base": "https://medicine.pusan.ac.kr",
             "notices": {
-              "대학원": "/medicine/11965/subview.do"
             },
             "professors": [
               "/medicine/11972/subview.do",
