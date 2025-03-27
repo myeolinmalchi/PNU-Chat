@@ -235,7 +235,7 @@ class DepartmentNoticeCrawlerService(
         urls: List[str],
         department: str,
         base_url: str,
-        category: str,
+        category: str | None,
         is_important: bool = False,
         parse_attachment: bool = False,
     ):
@@ -248,7 +248,8 @@ class DepartmentNoticeCrawlerService(
 
         def add_info(notice: NoticeDTO) -> NoticeDTO:
             notice["info"]["department"] = department
-            notice["info"]["category"] = category
+            if category:
+                notice["info"]["category"] = category
 
             notice["attachments"] = [{
                 "name": att["name"],
