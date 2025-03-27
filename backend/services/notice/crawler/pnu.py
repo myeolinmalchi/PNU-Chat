@@ -150,7 +150,7 @@ class PNUNoticeCrawler(BaseNoticeCrawler):
         parse_paths = lambda soup: self._parse_paths_from_table_element(soup, is_important=True)
 
         results_with_error = await scrape.scrape_async(
-            url=[NOTICE_INDEX_URL + f"?mCode={M_CODE}"],
+            url=[NOTICE_INDEX_URL + f"?page=1&mCode={M_CODE}"],
             session=session,
             post_process=parse_paths,
         )
@@ -330,16 +330,40 @@ class PNUNoticeCrawlerSerivce(
         else:
             last_notice = self.notice_repo.find_last_notice()
             if last_notice:
-                last_path = parse_url(last_notice.url).path
+                last_path = parse_url(last_notice.url)
                 if not last_path:
                     raise ValueError(f"잘못된 url입니다: {last_notice.url}")
-                last_id = int(last_path.split("=")[5])
+
+                last_id = int(parse_qs(last_path.query)["board_seq"][0])
 
         interval = kwargs.get('interval', 30)
 
-        urls = await self.notice_crawler.scrape_urls_async(last_id=last_id)
-
         dtos: List[NoticeDTO] = []
+
+        # 주요 공지 스크랩
+
+        logger(f"주요 공지사항 수집중...")
+        important_urls = await self.notice_crawler.scrape_important_urls_async()
+        important_notices = self.notice_repo.get_all(urls=important_urls)
+        prev_important_urls = [notice.url for notice in important_notices]
+        new_important_urls = [url for url in important_urls if url not in prev_important_urls]
+
+        affected = self.notice_repo.delete_all(exclude_urls=important_urls, only_important=True)
+        logger(f"{affected} rows deleted (important notice)")
+
+        important_dtos, _ = await self.run_crawling_batch(
+            urls=new_important_urls,
+            is_important=True,
+            parse_attachment=True,
+        )
+
+        dtos += important_dtos
+
+        logger("Done.")
+
+        # 일반 공지 스크랩
+        urls = await self.notice_crawler.scrape_urls_async(last_id=last_id)
+        urls = [url for url in urls if url not in important_urls]
 
         with tqdm(total=len(urls)) as pbar:
             for st in range(0, len(urls), interval):
@@ -352,21 +376,6 @@ class PNUNoticeCrawlerSerivce(
                 await asyncio.sleep(kwargs.get('delay', 0))
 
                 pbar.update(len(_dtos))
-
-        logger(f"주요 공지사항 수집중...")
-        important_urls = await self.notice_crawler.scrape_important_urls_async()
-        affected = self.notice_repo.delete_all(urls=important_urls)
-        logger(f"{affected} rows deleted (important notice)")
-
-        important_dtos, _ = await self.run_crawling_batch(
-            urls=important_urls,
-            is_important=True,
-            parse_attachment=True,
-        )
-
-        logger("Done.")
-
-        dtos += important_dtos
 
         return dtos
 
