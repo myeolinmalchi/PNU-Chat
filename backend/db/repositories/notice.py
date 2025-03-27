@@ -101,6 +101,12 @@ class PNUNoticeRepository(
 
         return last_notice[0] if last_notice else None
 
+    def get_all(self, **kwargs: Unpack[PNUNoticeSearchFilterType]):
+        filter = self._get_filters(**kwargs)
+        notices = self.session.query(PNUNoticeModel).filter(filter).all()
+
+        return notices
+
     def delete_all(self, **opts: Unpack[PNUNoticeSearchFilterType]):
         filter = self._get_filters(**opts)
         affected = self.session.query(PNUNoticeModel).filter(filter).delete()
