@@ -486,12 +486,37 @@ class MENoticeCrawlerService(
                 if last_notice:
                     last_id = int(parse_qs(parse_url(last_notice.url).query)["seq"][0])
 
+            # 주요 공지 스크랩
+            logger(f"[{DEPARTMENT}-{url_key}] 주요 공지사항 수집중...")
+            important_urls = await self.notice_crawler.scrape_important_urls_async(url_key=url_key)
+            important_notices = self.notice_repo.get_all(urls=important_urls)
+            prev_important_urls = [notice.url for notice in important_notices]
+            new_important_urls = [url for url in important_urls if url not in prev_important_urls]
+
+            affected = self.notice_repo.delete_all(exclude_urls=important_urls, only_important=True)
+            logger(f"[{DEPARTMENT}-{url_key}] {affected} rows deleted (important notice)")
+
+            important_dtos, _ = await self.run_crawling_batch(
+                urls=new_important_urls,
+                department=DEPARTMENT,
+                category=url_key,
+                is_important=True,
+                parse_attachment=parse_attachment
+            )
+
+            dtos += important_dtos
+
+            logger("Done.")
+
+            # 일반 공지 스크랩
             urls = await self.notice_crawler.scrape_urls_async(
                 url_key=url_key,
                 last_id=last_id,
                 st_date=st_date,
                 ed_date=ed_date,
             )
+
+            urls = [url for url in urls if url not in new_important_urls]
 
             with tqdm(total=len(urls), desc=f"[{DEPARTMENT}-{url_key}]") as pbar:
                 for st in range(0, len(urls), interval):
@@ -512,23 +537,6 @@ class MENoticeCrawlerService(
                     await asyncio.sleep(kwargs.get('delay', 0))
 
                     pbar.update(len(_dtos))
-
-            logger(f"[{DEPARTMENT}-{url_key}] 주요 공지사항 수집중...")
-            important_urls = await self.notice_crawler.scrape_important_urls_async(url_key=url_key)
-            affected = self.notice_repo.delete_all(urls=important_urls)
-            logger(f"[{DEPARTMENT}-{url_key}] {affected} rows deleted (important notice)")
-
-            important_dtos, _ = await self.run_crawling_batch(
-                urls=important_urls,
-                department=DEPARTMENT,
-                category=url_key,
-                is_important=True,
-                parse_attachment=parse_attachment
-            )
-
-            logger("Done.")
-
-            dtos += important_dtos
 
         return dtos
 
