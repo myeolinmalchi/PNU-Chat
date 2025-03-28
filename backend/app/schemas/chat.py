@@ -10,7 +10,7 @@ class Message(BaseModel):
 
 class SearchHistory(BaseModel):
     tool_name: str
-    tool_args: Dict[str, Any]
+    tool_args: Optional[Dict[str, Any]] = None
     content: str | List[str]
 
 
@@ -20,7 +20,7 @@ class ChatRequest(BaseModel):
     department: str
     major: Optional[str] = None
     grade: int = 1
-    model: Literal["gpt-4o", "o3-mini", "gpt-4o-mini"] = "o3-mini"
+    model: Literal["gpt-4o", "o3-mini", "gpt-4o-mini", "solar-pro"] = "o3-mini"
     messages: List[Message] = []
     contexts: List[SearchHistory] = []
 
