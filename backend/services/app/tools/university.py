@@ -3,7 +3,6 @@ from functools import lru_cache
 from openai.types.shared_params import FunctionDefinition
 
 from db.models.calendar import SemesterTypeEnum
-from services.app.tools.common import create_tool_param_semesters
 
 
 @lru_cache

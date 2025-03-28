@@ -1,5 +1,4 @@
 from openai.types.shared_params import FunctionDefinition
-from functools import lru_cache
 
 
 def create_tool_search_supports():
