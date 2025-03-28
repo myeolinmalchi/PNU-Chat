@@ -15,7 +15,7 @@ from db import repositories as repo
 
 class AppContainer(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(modules=[
-        "app.api.chat_v3",
+        "app.api.chat_v1",
         "app.api.university",
     ])
 

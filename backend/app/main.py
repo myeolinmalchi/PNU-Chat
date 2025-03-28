@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from containers import AppContainer
-from .api import chat_v3, university
+from .api import chat_v1, university
 
 origins = ["http://localhost:5173"]
 
@@ -19,7 +19,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.container = container # type: ignore
-    app.include_router(chat_v3.router)
+    app.include_router(chat_v1.router)
     app.include_router(university.router)
 
     return app
