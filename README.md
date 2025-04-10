@@ -1,7 +1,8 @@
 <h1 align="center">PNU Chat</h1>
 
 <br/>
-  <img width="100%" alt="부산대학교" align="center" src="https://github.com/user-attachments/assets/da8d6390-c5cd-407c-b1e0-b9f0ddb4dab7" />
+
+  <img width="100%" alt="부산대학교" align="center" src="https://github.com/user-attachments/assets/ec4f2b4f-7f35-49d6-8919-596ca93424bc" />
 
 <p align="center">
   <br/>
