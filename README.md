@@ -1,14 +1,10 @@
 <h1 align="center">PNU Chat</h1>
-
-<br/>
-
-  <img width="100%" alt="부산대학교" align="center" src="https://github.com/user-attachments/assets/ec4f2b4f-7f35-49d6-8919-596ca93424bc" />
+<img width="100%" alt="부산대학교" align="center" src="https://github.com/user-attachments/assets/ec4f2b4f-7f35-49d6-8919-596ca93424bc" />
 
 <p align="center">
   <br/>
   <b>AI 어시스턴트가 부산대학교의 공지사항, 학사일정, 학적, 교육 과정 등에 대한 궁금증을 신속하게 해결해줍니다.</b>
 </p>
-<br/>
 
 
 ## 프로젝트 소개
