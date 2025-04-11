@@ -21,7 +21,7 @@ ChatGPT, Grok3 등과 유사한 대화형 인터페이스를 제공하며, 누�
 | <img src="https://github.com/myeolinmalchi.png" width="150" height="150" style="border-radius: 50%;"> | <img src="https://github.com/JakeFRCSE.png" width="150" height="150" style="border-radius: 50%;"> | <img src="https://github.com/sanghunii.png" width="150" height="150" style="border-radius: 50%;"> | 
 | **개발 총괄** | **문서 파싱 서버** | **API 엔드포인트** |
 | [myeolinmalchi](https://github.com/myeolinmalchi) | [JakeFRCSE](https://github.com/JakeFRCSE) | [sanghunii](https://github.com/sanghunii) |
-## Stacks
+## Tech Stack
   - Backend: `Python3` `FastAPI` `SQLAlchemy` `Dependency Injector`
   - Frontend: `React.js` `TypeScript` `Zustand`
   - Text Embedding: [`myeolinmalchi/bge-m3-fastapi`](https://github.com/myeolinmalchi/bge-m3-fastapi)
