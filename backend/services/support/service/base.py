@@ -184,9 +184,9 @@ class SupportServiceV1(BaseSupportSearchService):
         chunks = self.support_repo.search_supports(
             dense_vector=embed_result["dense"],
             sparse_vector=embed_result["sparse"],
-            lexical_ratio=opts.get("lexical_ratio", 0.5),
-            rrf_k=opts.get("rrf_k", 40),
-            top_k=opts.get("count", 5),
+            lexical_ratio=opts.get("lexical_ratio", 0.7),
+            rrf_k=opts.get("rrf_k", 10),
+            top_k=opts.get("count", 3),
         )
 
         support_dict: Dict[int, SupportDTO] = {}
