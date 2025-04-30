@@ -147,6 +147,7 @@ class BaseSupportSearchService(BaseSupportService):
     class SearchOptions(TypedDict):
         count: NotRequired[int]
         lexical_ratio: NotRequired[float]
+        embeddings: NotRequired[EmbedResult]
 
     @abstractmethod
     async def search_supports_async(

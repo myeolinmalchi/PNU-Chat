@@ -6,6 +6,7 @@ from aiohttp import ClientSession
 from db.repositories.base import transaction
 from db.repositories.notice import PNUNoticeRepository
 from services.base import SemesterType
+from services.base.dto import EmbedResult
 from services.base.embedder import embed_async, rerank_async
 from services.notice import NoticeDTO
 
@@ -22,6 +23,7 @@ class IPNUNoticeSearchService(BasePNUNoticeService):
         threshold: NotRequired[float]
         lexical_ratio: NotRequired[float]
         semesters: NotRequired[List[SemesterType]]
+        embeddings: NotRequired[EmbedResult]
 
     @abstractmethod
     async def search_notices_async(

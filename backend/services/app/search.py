@@ -40,13 +40,14 @@ class AppSearchService(base.BaseService):
         query: str,
         departments: List[str],
         semesters: List[base.SemesterType] = [],
-        **_,
+        **opts,
     ):
         logger(f"search query(notice): {query}")
         notices = await self.notice_service.search_notices_async(
             query,
             departments=departments,
             semesters=semesters,
+            embeddings=opts["embeddings"],
         )
         logger(f"count of notices: {len(notices)}")
         return [self.notice_service.dto2context(notice) for notice in notices]
@@ -55,12 +56,13 @@ class AppSearchService(base.BaseService):
         self,
         query: str,
         semesters: List[base.SemesterType] = [],
-        **_,
+        **opts,
     ):
         logger(f"search query(pnu notice): {query}")
         notices = await self.pnu_notice_service.search_notices_async(
             query,
             semesters=semesters,
+            embeddings=opts["embeddings"],
         )
 
         logger(f"count of pnu notices: {len(notices)}")
@@ -71,12 +73,12 @@ class AppSearchService(base.BaseService):
         calendars = self.calendar_service.search_calendars(semesters)
         return [self.calendar_service.dto2context(dto) for dto in calendars]
 
-    def search_professors(self, **opts: Unpack[SearchNoticeOpts]):
+    def search_professors(self, **opts):
         return self.professor_service.search_professors(**opts)
 
-    async def search_supports(self, query: str, **_):
+    async def search_supports(self, query: str, **opts):
         logger(f"search query(support): {query}")
-        supports = await self.support_service.search_supports_async(query)
+        supports = await self.support_service.search_supports_async(query, embeddings=opts["embeddings"])
         calendars = self.calendar_service.search_calendars([])
 
         support_contexts = [self.support_service.dto2context(support) for support in supports]
