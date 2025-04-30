@@ -9,21 +9,7 @@
             "재입학": "https://onestop.pusan.ac.kr/page?menuCD=000000000000006",
             "제적": "https://onestop.pusan.ac.kr/page?menuCD=000000000000007",
             "자퇴": "https://onestop.pusan.ac.kr/page?menuCD=000000000000008",
-            "학적부기재사항정정": "https://onestop.pusan.ac.kr/page?menuCD=000000000000009",
-            "학적부기재사항정정 신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000143"
-        },
-        "소단위전공": {
-            "이수신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000425",
-            "이수인증신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000426"
-        },
-        "휴복학": {
-            "휴학 신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000322",
-            "복학 신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000323"
-        },
-        "학적부": {
-            "학적부": "https://onestop.pusan.ac.kr/page?menuCD=000000000000328",
-            "개인정보 수정": "https://onestop.pusan.ac.kr/page?menuCD=000000000000331",
-            "계좌번호 수정": "https://onestop.pusan.ac.kr/page?menuCD=000000000000330"
+            "학적부기재사항정정": "https://onestop.pusan.ac.kr/page?menuCD=000000000000009"
         },
         "전공지원신청안내": {
             "복수전공": "https://onestop.pusan.ac.kr/page?menuCD=000000000000405",
@@ -42,18 +28,7 @@
         },
         "타대이수학점안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000026",
         "교육과정": {
-            "교육과정": "https://onestop.pusan.ac.kr/page?menuCD=000000000000153",
-            "펜토미노 교육과정": "https://onestop.pusan.ac.kr/page?menuCD=000000000000441",
-            "펜토미노 교육과정 로드맵": "https://onestop.pusan.ac.kr/page?menuCD=000000000000442",
-            "나의 펜토미노 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000443"
-        },
-        "교과목조회": {
-            "교양과목조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000128",
-            "전공과목조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000147",
-            "교직과목조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000138",
-            "동일과목조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000139",
-            "타과 전공인정과목 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000140",
-            "학생별 적용 교육과정 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000141"
+            "교육과정": "https://onestop.pusan.ac.kr/page?menuCD=000000000000153"
         },
         "학점취득및성적평가": {
             "학점취득": "https://onestop.pusan.ac.kr/page?menuCD=000000000000249",
@@ -75,16 +50,6 @@
             "폐강 기준 및 수강신청 불인정": "https://onestop.pusan.ac.kr/page?menuCD=000000000000051",
             "교양선택 동일영역 대비표": "https://onestop.pusan.ac.kr/page?menuCD=000000000000052"
         },
-        "교수소개": {
-            "교수소개": "https://onestop.pusan.ac.kr/page?menuCD=000000000000357"
-        },
-        "보충과목부과현황": {
-            "보충과목부과현황": "https://onestop.pusan.ac.kr/page?menuCD=000000000000347"
-        },
-        "기초학력진단평가": {
-            "영어 기초학력진단평가": "https://onestop.pusan.ac.kr/page?menuCD=000000000000402",
-            "수학 기초학력진단평가": "https://onestop.pusan.ac.kr/page?menuCD=000000000000403"
-        },
         "교육과정별수강신청안내": {
             "교육과정 적용대상자": "https://onestop.pusan.ac.kr/page?menuCD=000000000000252"
         },
@@ -92,17 +57,8 @@
             "수강편람": "https://onestop.pusan.ac.kr/page?menuCD=000000000000335",
             "타대생 수강편람": "https://onestop.pusan.ac.kr/page?menuCD=000000000000360"
         },
-        "시간표조회": {
-            "개인시간표 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000366",
-            "교수별 시간표 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000367",
-            "강의실별 시간표 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000368",
-            "시험시간표 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000377"
-        },
         "교직과정안내": {
             "교직과정설치 및 운영목적": "https://onestop.pusan.ac.kr/page?menuCD=000000000000257",
-            "교직선발 및 교원자격취득 확인": "https://onestop.pusan.ac.kr/page?menuCD=000000000000258",
-            "교직이수 요건관리": "https://onestop.pusan.ac.kr/page?menuCD=000000000000259",
-            "교육봉사활동": "https://onestop.pusan.ac.kr/page?menuCD=000000000000260",
             "일반대학 교직설치학과": "https://onestop.pusan.ac.kr/page?menuCD=000000000000261",
             "교직이수예정자선발 및 교직이수": "https://onestop.pusan.ac.kr/page?menuCD=000000000000262",
             "교직복수(연계)전공 선발": "https://onestop.pusan.ac.kr/page?menuCD=000000000000263",
@@ -110,24 +66,7 @@
             "교직교육과정 적용 기준년도": "https://onestop.pusan.ac.kr/page?menuCD=000000000000265"
         },
         "수강신청및확인": {
-            "수강신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000388",
-            "희망과목담기 신청인원 확인": "https://onestop.pusan.ac.kr/page?menuCD=000000000000339",
-            "자동신청교과목 확인 및 삭제": "https://onestop.pusan.ac.kr/page?menuCD=000000000000340",
-            "수강확인": "https://onestop.pusan.ac.kr/page?menuCD=000000000000355",
-            "학점이월제 수강가능학점 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000346",
-            "폐강강좌 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000345"
-        },
-        "교과목수요조사": {
-            "계절수업 수요조사": "https://onestop.pusan.ac.kr/page?menuCD=000000000000348"
-        },
-        "교수계획표": {
-            "교수계획표 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000327"
-        },
-        "수강취소(졍규/계절/도약)": {
-            "수강취소": "https://onestop.pusan.ac.kr/page?menuCD=000000000000358"
-        },
-        "출결확인": {
-            "출석인정신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000353"
+            "수강신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000388"
         }
     },
     "성적": {
@@ -135,29 +74,11 @@
             "성적관리기준안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000059",
             "성적백분위환산표": "https://onestop.pusan.ac.kr/page?menuCD=000000000000060",
             "학사경고및유급": "https://onestop.pusan.ac.kr/page?menuCD=000000000000061"
-        },
-        "성적조회": {
-            "금학기 성적 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000144",
-            "전체 성적 조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000145"
-        },
-        "강의평가": {
-            "중간강의평가": "https://onestop.pusan.ac.kr/page?menuCD=000000000000127",
-            "기말강의평가": "https://onestop.pusan.ac.kr/page?menuCD=000000000000329",
-            "강의평가결과공개": "https://onestop.pusan.ac.kr/page?menuCD=000000000000137"
         }
     },
     "장학": {
-        "장학 공지사항": "https://onestop.pusan.ac.kr/page?menuCD=000000000000062",
-        "개인별 장학급 내역": {
-            "개인별 장학금 내역": "https://onestop.pusan.ac.kr/page?menuCD=000000000000374"
-        },
         "장학금개요안내": {
             "우리대학장학금개요": "https://onestop.pusan.ac.kr/page?menuCD=000000000000070"
-        },
-        "장학금신청": {
-            "우선선발장학금신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000370",
-            "장학생(근로)신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000371",
-            "유니웰장학금신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000372"
         },
         "종류별장학안내": {
             "학부장학금": "https://onestop.pusan.ac.kr/page?menuCD=000000000000266",
@@ -166,30 +87,21 @@
             "공모.공모형장학금": "https://onestop.pusan.ac.kr/page?menuCD=000000000000269",
             "학자금대출": "https://onestop.pusan.ac.kr/page?menuCD=000000000000270"
         },
-        "장학금환수": {
-            "장학금환수": "https://onestop.pusan.ac.kr/page?menuCD=000000000000362"
-        },
         "절차별장학안내": {
             "장학금 신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000271",
             "장학생 선발 및 제외": "https://onestop.pusan.ac.kr/page?menuCD=000000000000272",
             "장학금 지급 및 반납": "https://onestop.pusan.ac.kr/page?menuCD=000000000000273"
-        },
-        "근로봉사": {
-            "근로봉사": "https://onestop.pusan.ac.kr/page?menuCD=000000000000376"
         }
     },
     "등록": {
         "등록금납부안내": {
             "재학생납부": "https://onestop.pusan.ac.kr/page?menuCD=000000000000078",
-            "분할납부": "https://onestop.pusan.ac.kr/page?menuCD=000000000000079",
             "차등납부": "https://onestop.pusan.ac.kr/page?menuCD=000000000000080",
             "납부방법": "https://onestop.pusan.ac.kr/page?menuCD=000000000000081"
         },
         "등록금반환": "https://onestop.pusan.ac.kr/page?menuCD=000000000000077",
         "고지서출력": {
-            "고지서출력 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000274",
-            "고지서": "https://onestop.pusan.ac.kr/page?menuCD=000000000000369",
-            "외국인 유학생 보험료 고지서": "https://onestop.pusan.ac.kr/page?menuCD=000000000000280"
+            "고지서출력 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000274"
         },
         "납부확인(영수증출력)": "https://onestop.pusan.ac.kr/page?menuCD=000000000000075",
         "등로금책정표": "https://onestop.pusan.ac.kr/page?menuCD=000000000000076"
@@ -197,19 +109,12 @@
     "졸업": {
         "학부졸업안내": {
             "졸업안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000088",
-            "졸업예정정보": "https://onestop.pusan.ac.kr/page?menuCD=000000000000089",
-            "졸업요건기준 및 충족여부조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000090",
-            "졸업사정결과": "https://onestop.pusan.ac.kr/page?menuCD=000000000000091",
             "학년별수료학점": "https://onestop.pusan.ac.kr/page?menuCD=000000000000092",
-            "졸업소요학점": "https://onestop.pusan.ac.kr/page?menuCD=000000000000093",
             "졸업요건/졸업학위": "https://onestop.pusan.ac.kr/page?menuCD=000000000000094",
-            "표준외국어능력시험(TOEIC)": "https://onestop.pusan.ac.kr/page?menuCD=000000000000095",
-            "졸업사정용성적표": "https://onestop.pusan.ac.kr/page?menuCD=000000000000096"
+            "표준외국어능력시험(TOEIC)": "https://onestop.pusan.ac.kr/page?menuCD=000000000000095"
         },
-        "졸업생취업현황": "https://onestop.pusan.ac.kr/page?menuCD=000000000000087",
         "학사학위취득유예": {
-            "학사학위취득유예 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000282",
-            "학사학위취득유예 신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000284"
+            "학사학위취득유예 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000282"
         },
         "대학원졸업정보": {
             "일반대학원졸업정보": "https://onestop.pusan.ac.kr/page?menuCD=000000000000285",
@@ -231,17 +136,10 @@
     },
     "학생교류": {
         "해외파견": {
-            "안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000204",
-            "교환/교비": "https://onestop.pusan.ac.kr/page?menuCD=000000000000205",
-            "자비": "https://onestop.pusan.ac.kr/page?menuCD=000000000000151",
-            "단기파견": "https://onestop.pusan.ac.kr/page?menuCD=000000000000206",
-            "합격정보조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000207",
-            "APRU VSE": "https://onestop.pusan.ac.kr/page?menuCD=000000000000428",
-            "SAM단기파견": "https://onestop.pusan.ac.kr/page?menuCD=000000000000432"
+            "안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000204"
         },
         "교환학생(국내)": {
-            "안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000099",
-            "교환학생(국내)게시판": "https://onestop.pusan.ac.kr/page?menuCD=000000000000100"
+            "안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000099"
         }
     },
     "대학생활": {
@@ -276,7 +174,6 @@
             "학생의료공제회 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000314",
             "환불 및 반환 지급기준": "https://onestop.pusan.ac.kr/page?menuCD=000000000000319"
         },
-        "기업협약정보(호텔,항공등)": "https://onestop.pusan.ac.kr/page?menuCD=000000000000117",
         "학습지원시설": {
             "도서관": "https://onestop.pusan.ac.kr/page?menuCD=000000000000320",
             "정보화교육관": "https://onestop.pusan.ac.kr/page?menuCD=000000000000321"
@@ -286,11 +183,7 @@
             "발급안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000307"
         },
         "예비군": {
-            "예비군 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000239",
-            "예비군 FAQ": "https://onestop.pusan.ac.kr/page?menuCD=000000000000391",
-            "예비군편성상태조회": "https://onestop.pusan.ac.kr/page?menuCD=000000000000131",
-            "대원신고서작성": "https://onestop.pusan.ac.kr/page?menuCD=000000000000130",
-            "예비군훈련신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000129"
+            "예비군 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000239"
         },
         "학교 안전사고보상공제": "https://onestop.pusan.ac.kr/page?menuCD=000000000000107",
         "후생복지": {
@@ -298,11 +191,8 @@
             "건강증진센터(구, 보건진료소)": "https://onestop.pusan.ac.kr/page?menuCD=000000000000309",
             "대학생활원": "https://onestop.pusan.ac.kr/page?menuCD=000000000000310"
         },
-        "통학버스": {
-            "통학버스 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000241",
-            "통학버스 신청": "https://onestop.pusan.ac.kr/page?menuCD=000000000000242",
-            "통학버스 조회 및 취소": "https://onestop.pusan.ac.kr/page?menuCD=000000000000243"
-        },
-        "국제학생증발급": "https://onestop.pusan.ac.kr/page?menuCD=000000000000113"
+        "셔틀버스": {
+            "셔틀버스 안내": "https://onestop.pusan.ac.kr/page?menuCD=000000000000241"
+        }
     }
 }
