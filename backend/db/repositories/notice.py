@@ -233,9 +233,7 @@ class PNUNoticeRepository(
         return query.all()
 
 
-class NoticeRepository(
-    BaseRepository[NoticeModel],
-):
+class NoticeRepository(BaseRepository[NoticeModel]):
 
     def delete_all(self, **kwargs: Unpack[NoticeSearchFilterType]):
         filter = self._get_filters(**kwargs)
@@ -305,9 +303,9 @@ class NoticeRepository(
         date_filter = and_(NoticeModel.date >= st, NoticeModel.date <= ed)
         query = self.session.query(NoticeModel).filter(date_filter).filter(filter)
         if batch:
-            query.limit(batch)
+            query = query.limit(batch)
         if offset:
-            query.offset(offset)
+            query = query.offset(offset)
 
         notices = query.all()
 
@@ -451,8 +449,8 @@ class NoticeRepository(
         score_lexical_content = -1 * (
             NoticeChunkModel.chunk_sparse_vector.max_inner_product(SparseVector(sparse_vector, V_DIM))
         )
-        score_content = func.max((score_lexical_content * lexical_ratio) + score_dense_content *
-                                 (1 - lexical_ratio)).label("score_content")
+        score_content = ((score_lexical_content * lexical_ratio) + score_dense_content *
+                         (1 - lexical_ratio)).label("score_content")
 
         score_dense_title = 1 - NoticeModel.title_vector.cosine_distance(dense_vector)
         score_lexical_title = -1 * (
@@ -461,21 +459,32 @@ class NoticeRepository(
         score_title = ((score_lexical_title * lexical_ratio) + score_dense_title *
                        (1 - lexical_ratio)).label("score_title")
 
-        rank_content = self.session.query(
-            NoticeChunkModel.id,
-            func.row_number().over(order_by=score_content.desc()).label("rank_content"),
-        ).group_by(NoticeChunkModel.id).join(
-            NoticeModel,
-            NoticeChunkModel.notice_id == NoticeModel.id,
-        ).filter(filter).subquery()
+        rank_content = (
+            self.session.query(
+                NoticeChunkModel.id,
+                func.row_number().over(order_by=score_content.desc()).label("rank_content"),
+            ).join(
+                NoticeModel,
+                NoticeChunkModel.notice_id == NoticeModel.id,
+            ).filter(filter).subquery()
+        )
 
-        rank_title = self.session.query(
-            NoticeChunkModel.id,
-            func.row_number().over(order_by=score_title.desc()).label("rank_title"),
-        ).join(
-            NoticeChunkModel,
-            NoticeChunkModel.notice_id == NoticeModel.id,
-        ).filter(filter).subquery()
+        rank_title_subq = (
+            self.session.query(
+                NoticeModel.id.label("notice_id"),
+                func.row_number().over(order_by=score_title.desc()).label("rank_title")
+            )
+        ).subquery()
+
+        rank_title = (
+            self.session.query(
+                NoticeChunkModel.id,
+                rank_title_subq.c.rank_title,
+            ).join(
+                rank_title_subq,
+                rank_title_subq.c.notice_id == NoticeChunkModel.notice_id,
+            ).subquery()
+        )
 
         rrf_score = (1 / (rrf_k + rank_content.c.rank_content) + 1 /
                      (rrf_k + rank_title.c.rank_title)).label("rrf_score")
