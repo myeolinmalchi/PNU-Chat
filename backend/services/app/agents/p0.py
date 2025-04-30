@@ -9,7 +9,7 @@ from .schemas import (
     P0_ResponseFormat,
 )
 
-from typing import Dict, Generic, List, Optional, Tuple
+from typing import Generic, List, Optional
 
 import openai
 from openai.lib import ResponseFormatT
@@ -51,7 +51,7 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
         question: str,
         history: List[ChatCompletionMessageParam] = [],
         context: str | None = None,
-    ) -> Tuple[Optional[ResponseFormatT], Dict[str, int]]:
+    ) -> Optional[ResponseFormatT]:
         context_prompt = ("\n\n---\n\n"
                           "context:\n"
                           f"{context}") if context is not None else ""
@@ -67,15 +67,16 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
         )
 
         parsed = completion.choices[0].message.parsed
-
+        """
         usage = {}
         if completion.usage:
             usage["input"] = completion.usage.prompt_tokens
             usage["output"] = completion.usage.completion_tokens
             if completion.usage.prompt_tokens_details:
                 usage["input_cached"] = completion.usage.prompt_tokens_details.cached_tokens
+        """
 
-        return parsed, usage
+        return parsed
 
 
 class P0_1(P0_Base[P0_1_ResponseFormat]):
