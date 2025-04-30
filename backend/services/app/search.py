@@ -35,26 +35,6 @@ class AppSearchService(base.BaseService):
         semester = self.calendar_service.get_semester(year, month, day)
         return now, semester[0]
 
-    class SearchOpts(TypedDict):
-        count: NotRequired[int]
-        lexical_ratio: NotRequired[float]
-
-    class SearchNoticeOpts(SearchOpts):
-        query: str
-        semesters: NotRequired[List[base.SemesterType]]
-        departments: Required[List[str]]
-
-    class SearchPNUNoticeOpts(SearchOpts):
-        query: str
-        semesters: Required[List[base.SemesterType]]
-
-    class SearchProfessorOpts(SearchOpts):
-        query: str
-        departments: Required[List[str]]
-
-    class SearchSupportOpts(SearchOpts):
-        query: str
-
     async def search_notices(
         self,
         query: str,
