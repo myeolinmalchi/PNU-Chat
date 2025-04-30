@@ -5,7 +5,8 @@ from pgvector.sqlalchemy import SparseVector
 from db.common import V_DIM
 from db.models.support import SupportAttachmentModel, SupportChunkModel, SupportModel
 from db.repositories.base import transaction
-from db.repositories.support import SupportRepository
+from db.repositories.support import ISupportRepository
+from services.base.dto import EmbedResult
 from services.base.embedder import embed_async, rerank_async
 from services.base.service import BaseDomainService
 from typing import Dict, List, Optional, TypedDict, NotRequired, Unpack
@@ -25,7 +26,7 @@ class BaseSupportService(BaseDomainService[SupportDTO, SupportModel]):
 
     def __init__(
         self,
-        support_repo: SupportRepository,
+        support_repo: ISupportRepository,
         support_crawler: SupportCrawler,
         support_embedder: SupportEmbedder,
     ):
@@ -96,14 +97,18 @@ class BaseSupportService(BaseDomainService[SupportDTO, SupportModel]):
         return SupportModel(**support_dict)
 
     def orm2dto(self, orm, **_):
-        #attachments = [{"name": att.name, "url": att.url} for att in orm.attachments]
+        attachments = [{"name": att.name, "url": att.url} for att in orm.attachments]
         info = {
             "title": orm.title,
             "sub_category": orm.sub_category,
             "category": orm.category,
-            "content": [],
+            "content": orm.content,
         }
-        return SupportDTO(**{"info": info, "attachments": [], "url": orm.url})
+        return SupportDTO(**{
+            "info": info,
+            "attachments": attachments,
+            "url": orm.url,
+        })
 
     def attachment2context(self, dto: SupportAttachmentDTO) -> Optional[str]:
         return textwrap.dedent(
@@ -146,6 +151,7 @@ class BaseSupportSearchService(BaseSupportService):
 
     class SearchOptions(TypedDict):
         count: NotRequired[int]
+        rrf_k: NotRequired[int]
         lexical_ratio: NotRequired[float]
         embeddings: NotRequired[EmbedResult]
 
@@ -175,11 +181,12 @@ class SupportServiceV1(BaseSupportSearchService):
             html=False,
         ) if "embeddings" not in opts else opts["embeddings"]
 
-        chunks = self.support_repo.search_supports_hybrid_v2(
+        chunks = self.support_repo.search_supports(
             dense_vector=embed_result["dense"],
             sparse_vector=embed_result["sparse"],
             lexical_ratio=opts.get("lexical_ratio", 0.5),
-            k=opts.get("count", 5),
+            rrf_k=opts.get("rrf_k", 40),
+            top_k=opts.get("count", 5),
         )
 
         support_dict: Dict[int, SupportDTO] = {}
@@ -190,7 +197,11 @@ class SupportServiceV1(BaseSupportSearchService):
 
             if support_id not in support_dict:
                 dto = self.orm2dto(chunk.support)
+                dto["info"]["content"] = []
+                dto["attachments"] = []
+
                 support_dict[support_id] = dto
+
             else:
                 dto = support_dict[support_id]
 
@@ -225,11 +236,11 @@ class SupportServiceV2(BaseSupportSearchService):
             html=False,
         ) if "embeddings" not in opts else opts["embeddings"]
 
-        pre_ranked = self.support_repo.search_supports_hybrid_v2(
+        pre_ranked = self.support_repo.search_supports(
             dense_vector=embed_result["dense"],
             sparse_vector=embed_result["sparse"],
             lexical_ratio=opts.get("lexical_ratio", 0.5),
-            k=opts.get("top_k", 20),
+            top_k=opts.get("top_k", 10),
         )
 
         texts = [support.chunk_content for support in pre_ranked]
@@ -246,6 +257,8 @@ class SupportServiceV2(BaseSupportSearchService):
 
             if support_id not in ranked_dict:
                 dto = self.orm2dto(chunk.support)
+                dto["info"]["content"] = []
+                dto["attachments"] = []
                 ranked_dict[support_id] = dto
             else:
                 dto = ranked_dict[support_id]
