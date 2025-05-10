@@ -6,6 +6,7 @@ from aiohttp import ClientSession
 from db.repositories.base import transaction
 from db.repositories.notice import PNUNoticeRepository
 from services.base import SemesterType
+from services.base.dto import EmbedResult
 from services.base.embedder import embed_async, rerank_async
 from services.notice import NoticeDTO
 
@@ -22,6 +23,7 @@ class IPNUNoticeSearchService(BasePNUNoticeService):
         threshold: NotRequired[float]
         lexical_ratio: NotRequired[float]
         semesters: NotRequired[List[SemesterType]]
+        embeddings: NotRequired[EmbedResult]
 
     @abstractmethod
     async def search_notices_async(
@@ -72,9 +74,10 @@ class PNUNoticeSearchServiceV1(IPNUNoticeSearchService):
             chunks = self.notice_repo.search_chunks_hybrid(
                 dense_vector=embed_result["dense"],
                 sparse_vector=embed_result["sparse"],
-                lexical_ratio=opts.get("lexical_ratio", 0.5),
+                lexical_ratio=opts.get("lexical_ratio", 0.7),
                 semester_ids=semester_ids,
-                k=opts.get("count", 5),
+                k=opts.get("count", 3),
+                rrf_k=10,
             )
             notice_dict: Dict[int, NoticeDTO] = {}
 
@@ -106,7 +109,7 @@ class PNUNoticeSearchServiceV1(IPNUNoticeSearchService):
 class PNUNoticeSearchServiceV2(IPNUNoticeSearchService):
 
     async def search_notices_async(self, query, session=None, **opts):
-        """search without reranker"""
+        """search with reranker"""
 
         if type(self.notice_repo) is not PNUNoticeRepository:
             raise ValueError

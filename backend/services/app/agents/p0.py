@@ -9,7 +9,7 @@ from .schemas import (
     P0_ResponseFormat,
 )
 
-from typing import Dict, Generic, List, Optional, Tuple
+from typing import Generic, List, Optional
 
 import openai
 from openai.lib import ResponseFormatT
@@ -51,7 +51,7 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
         question: str,
         history: List[ChatCompletionMessageParam] = [],
         context: str | None = None,
-    ) -> Tuple[Optional[ResponseFormatT], Dict[str, int]]:
+    ) -> Optional[ResponseFormatT]:
         context_prompt = ("\n\n---\n\n"
                           "context:\n"
                           f"{context}") if context is not None else ""
@@ -67,15 +67,16 @@ class P0_Base(BaseService, Generic[ResponseFormatT]):
         )
 
         parsed = completion.choices[0].message.parsed
-
+        """
         usage = {}
         if completion.usage:
             usage["input"] = completion.usage.prompt_tokens
             usage["output"] = completion.usage.completion_tokens
             if completion.usage.prompt_tokens_details:
                 usage["input_cached"] = completion.usage.prompt_tokens_details.cached_tokens
+        """
 
-        return parsed, usage
+        return parsed
 
 
 class P0_1(P0_Base[P0_1_ResponseFormat]):
@@ -83,13 +84,14 @@ class P0_1(P0_Base[P0_1_ResponseFormat]):
     def __init__(self, client, model, temperature):
         system_prompt = (
             "당신은 부산대학교 AI 어시스턴트 p0의 조수 역할을 하는 Agent p0_1입니다.\n"
-            "당신의 역할은 주어진 사용자의 질문을 토대로 최대 두 개의 하위 질문을 생성하는 것입니다.\n"
+            "당신의 임무는 사용자의 원본 질문을 바탕으로 의미를 확장하고 명확화하기 위해 하위 질문을 생성하는 것입니다.\n"
             "\n"
             "instructions:\n"
-            "하위 질문은 원본 질문을 답변하기 위해 먼저 해결해야 하는 내용을 포함합니다.\n"
-            "중복되지 않아야 하며, 최대 두 개의 질문을 생성합니다.\n"
-            "상위어와 유의어를 활용하여 보다 포괄적이고 일반적인 질문을 생성하세요.\n"
-            "질문에 최대한 많은 정보를 포함하세요."
+            "- 하위 질문은 원본 질문을 정확히 이해하고 답변하기 위해 반드시 필요한 전제나 세부 사항을 분해한 것입니다.\n"
+            "- 중복되지 않는 최대 두 개의 하위 질문을 생성하세요.\n"
+            "- 원본 질문의 맥락에서 생략되었을 수 있는 요소(대상, 범위, 조건, 시간 등)를 보완하세요.\n"
+            "- 유사어, 상위 개념, 제도적 용어를 활용하여 검색 가능성을 확장하세요.\n"
+            "- 각각의 질문은 명확하고 독립적인 문장이어야 하며, 최대한 많은 정보를 포함해야 합니다."
         )
 
         super().__init__(
@@ -109,7 +111,6 @@ class P0_2(P0_Base[P0_2_ResponseFormat]):
             "당신의 역할은 사용자의 질문에 답하기 위해 적절한 검색 도구를 선택하는 것입니다.\n"
             "\n"
             "instructions:\n"
-            "도구는 3개까지 선택 가능합니다.\n"
             "도구는 3개까지 선택 가능합니다.\n"
             "최대한 다양한 도구를 사용하세요.\n"
             "\n"

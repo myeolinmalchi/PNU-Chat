@@ -76,10 +76,11 @@ class DepartmentNoticeSearchServiceV1(IDepartmentNoticeSearchService):
             chunks = self.notice_repo.search_chunks_hybrid(
                 dense_vector=embed_result["dense"],
                 sparse_vector=embed_result["sparse"],
-                lexical_ratio=opts.get("lexical_ratio", 0.5),
+                lexical_ratio=opts.get("lexical_ratio", 0.7),
                 semester_ids=semester_ids,
                 departments=departments,
-                k=opts.get("count", 5),
+                k=opts.get("count", 3),
+                rrf_k=10,
             )
             notice_dict: Dict[int, NoticeDTO] = {}
 
